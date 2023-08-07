@@ -33,13 +33,15 @@
 
 function plugin_nediimport_install(){
 	global $DB;
-	
+	$default_charset = DBConnection::getDefaultCharset();
+	$default_collation = DBConnection::getDefaultCollation();
 	if (!$DB->tableExists("glpi_plugin_nediimport_settings")){
 		$query = "CREATE TABLE `glpi_plugin_nediimport_settings` (
-					`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY ,
+					`id` INT NOT NULL AUTO_INCREMENT ,
 					`spec` VARCHAR( 20 ),
-					`value` VARCHAR( 200 )
-					) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci ";
+					`value` VARCHAR( 200 ),
+					PRIMARY KEY (`ID`)
+					) ENGINE=InnoDB DEFAULT CHARSET={$default_charset} COLLATE={$default_collation} ROW_FORMAT=DYNAMIC";
 		$DB->query($query) or die("error creating glpi_plugin_nediimport_settings ". $DB->error());
 		$query="INSERT INTO glpi_plugin_nediimport_settings (id,spec,value) VALUES (NULL,'url',''),(NULL,'user',''),(NULL,'pass',''),(NULL,'auto','0');";
 		$DB->query($query) or die("error filling glpi_plugin_nediimport_settings ". $DB->error());
@@ -47,19 +49,21 @@ function plugin_nediimport_install(){
 	
 	if (!$DB->tableExists("glpi_plugin_nediimport_switch_conf")){
 		$query = "CREATE TABLE `glpi_plugin_nediimport_switch_conf` (
-					`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY ,
+					`id` INT NOT NULL AUTO_INCREMENT,
 					`name` VARCHAR( 20 ),
-					`conf` INT
-					) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci ";
+					`conf` INT,
+					PRIMARY KEY (`ID`)
+					) ENGINE=InnoDB DEFAULT CHARSET={$default_charset} COLLATE={$default_collation} ROW_FORMAT=DYNAMIC";
 		$DB->query($query) or die("error creating glpi_plugin_nediimport_switch_conf ". $DB->error());
 	}
 	
 	if(!$DB->tableExists("glpi_plugin_nediimport_stat")){
-		$query="CREATE TABLE `glpi`.`glpi_plugin_nediimport_stat` (
-				`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY ,
+		$query="CREATE TABLE `glpi_plugin_nediimport_stat` (
+				`id` INT NOT NULL AUTO_INCREMENT ,
 				`name` VARCHAR( 200 ) NOT NULL ,
-				`value` INT NOT NULL
-				) ENGINE = MYISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci ";
+				`value` INT NOT NULL,
+				PRIMARY KEY (`ID`)
+				) ENGINE=InnoDB DEFAULT CHARSET={$default_charset} COLLATE={$default_collation} ROW_FORMAT=DYNAMIC";
 		$DB->query($query) or die("error creating glpi_plugin_nediimport_switch_stat ". $DB->error());
 	}
 	
