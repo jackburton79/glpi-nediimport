@@ -39,6 +39,7 @@ function plugin_init_nediimport() {
 	$PLUGIN_HOOKS['menu_entry']['nediimport'] = 'front/start.php';
 	$PLUGIN_HOOKS['submenu_entry']['nediimport']['options']['optionname']['title'] = "Start";
 	$PLUGIN_HOOKS['submenu_entry']['nediimport']['options']['optionname']['page'] = '/plugins/nediimport/front/start.php';
+	$PLUGIN_HOOKS['csrf_compliant']['nediimport'] = true;
 }
 
 function plugin_version_nediimport(){
