@@ -50,11 +50,16 @@ function plugin_version_nediimport(){
 }
 
 function plugin_nediimport_check_prerequisites(){
-	if (GLPI_VERSION >= 0.80) {
-		return true;
-	} else {
-		echo "GLPI version not compatible need at minimum 0.80";
-	}
+  if (version_compare(GLPI_VERSION, '9.5', '>=') && version_compare(GLPI_VERSION, '10.1', '<=')) {
+    return true;
+  } else {
+    if (method_exists('Plugin', 'messageIncompatible')) {
+      echo Plugin::messageIncompatible('core', '9.5', '10.1');
+    } else {
+      echo 'This plugin requires GLPI >= 9.5 && <= 10.1';
+      return false;
+    }
+  }
 }
 
 function plugin_nediimport_check_config(){

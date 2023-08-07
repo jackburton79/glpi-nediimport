@@ -34,7 +34,7 @@
 function plugin_nediimport_install(){
 	global $DB;
 	
-	if (!TableExists("glpi_plugin_nediimport_settings")){
+	if (!$DB->tableExists("glpi_plugin_nediimport_settings")){
 		$query = "CREATE TABLE `glpi_plugin_nediimport_settings` (
 					`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY ,
 					`spec` VARCHAR( 20 ),
@@ -45,7 +45,7 @@ function plugin_nediimport_install(){
 		$DB->query($query) or die("error filling glpi_plugin_nediimport_settings ". $DB->error());
 	}
 	
-	if (!TableExists("glpi_plugin_nediimport_switch_conf")){
+	if (!$DB->tableExists("glpi_plugin_nediimport_switch_conf")){
 		$query = "CREATE TABLE `glpi_plugin_nediimport_switch_conf` (
 					`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY ,
 					`name` VARCHAR( 20 ),
@@ -54,7 +54,7 @@ function plugin_nediimport_install(){
 		$DB->query($query) or die("error creating glpi_plugin_nediimport_switch_conf ". $DB->error());
 	}
 	
-	if(!TableExists("glpi_plugin_nediimport_stat")){
+	if(!$DB->tableExists("glpi_plugin_nediimport_stat")){
 		$query="CREATE TABLE `glpi`.`glpi_plugin_nediimport_stat` (
 				`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY ,
 				`name` VARCHAR( 200 ) NOT NULL ,
@@ -70,17 +70,17 @@ function plugin_nediimport_install(){
 function plugin_nediimport_uninstall(){
 	global $DB;
 	
-	if(TableExists("glpi_plugin_nediimport_settings")){
+	if($DB->tableExists("glpi_plugin_nediimport_settings")){
 		$query="DROP TABLE `glpi_plugin_nediimport_settings`";
 		$DB->query($query) or die("error drop glpi_plugin_nediimport_settings ". $DB->error());
 	}
 	
-	if(TableExists("glpi_plugin_nediimport_switch_conf")){
+	if($DB->tableExists("glpi_plugin_nediimport_switch_conf")){
 		$query="DROP TABLE `glpi_plugin_nediimport_switch_conf`";
 		$DB->query($query) or die("error drop glpi_plugin_nediimport_switch_conf ". $DB->error());
 	}
 	
-	if(TableExists("glpi_plugin_nediimport_switch_stat")){
+	if($DB->tableExists("glpi_plugin_nediimport_switch_stat")){
 		$query="DROP TABLE `glpi_plugin_nediimport_switch_stat`";
 		$DB->query($query) or die("error drop glpi_plugin_nediimport_switch_stat ". $DB->error());
 	}
