@@ -64,19 +64,19 @@ class PluginNediImportConnection{
 		$store=curl_exec($this->con);
 		
 		if(!$store){
-			$this->err="{$LANG['plugin_nediimport']['check_con_fail']}";
+			$this->err=__('Connection failed!');
 			return false;
 		}
 		else{
 			$Info=curl_getinfo($this->con);
 			if($Info['http_code']!=200){
-				$this->err="{$LANG['plugin_nediimport']['check_http_fail']}";
+				$this->err=__('Login failed (HTTP_ERROR)!');
 				return false;
 			}
 			
 			//check for incorrect login
 			if(stripos($store,"Incorrect Login")){
-				$this->err="{$LANG['plugin_nediimport']['check_login_fail']}";
+				$this->err=__('Incorrect Login!');
 				return false;
 			}
 			

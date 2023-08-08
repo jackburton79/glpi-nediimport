@@ -35,7 +35,7 @@ define('GLPI_ROOT', '../../..');
 include (GLPI_ROOT . "/inc/includes.php");
 include("../inc/settings.class.php");
 
-commonHeader($LANG['plugin_nediimport']['title'], $_SERVER['PHP_SELF'],"plugins","nediimport","optionname");
+commonHeader(__('Nedi Data Import'), $_SERVER['PHP_SELF'],"plugins","nediimport","optionname");
 
 $PluginSettings=new PluginNediImportSettings();
 
@@ -58,7 +58,7 @@ if($_POST['action']){
 	}
 	
 	$PluginSettings->Save();
-	echo "<div align='center' style='padding: 5px;'>".$LANG['plugin_nediimport']['config_success']."</div>";
+	echo "<div align='center' style='padding: 5px;'>".__('Settings were changed successfully!')."</div>";
 }
 
 //load informations
@@ -73,15 +73,15 @@ else{
 echo "<form action='config.php' method='post'>";
 
 echo "<div align='center'><table class='tab_cadre' cellpadding='5' width='70%'>";
-echo "<tr><th colspan='2'>".$LANG['plugin_nediimport']['settings_title']."</th></tr>";
-echo "<tr class='tab_bg_1'><td>".$LANG['plugin_nediimport']['config_url']."</td><td><input type='text' name='url' value='{$PluginSettings->Settings['url']}' /></td></tr>";
-echo "<tr class='tab_bg_1'><td>".$LANG['plugin_nediimport']['config_user']."</td><td><input type='text' name='user' value='{$PluginSettings->Settings['user']}' /></td></tr>";
-echo "<tr class='tab_bg_1'><td>".$LANG['plugin_nediimport']['config_pass']."</td><td><input type='password' name='pass' value='{$PluginSettings->Settings['pass']}' /></td></tr>";
-echo "<tr class='tab_bg_1'><td>".$LANG['plugin_nediimport']['config_autoimport']."</td><td><input type='checkbox' name='auto' $check /></td></tr>";
-echo "<tr class='tab_bg_1'><td>&nbsp;</td><td><input type='submit' class='submit' name='action' value='".$LANG['plugin_nediimport']['util_submit']."' /></td></tr>";
+echo "<tr><th colspan='2'>".__('Change Nedi Import settings')."</th></tr>";
+echo "<tr class='tab_bg_1'><td>".__('URL to Nedi')."</td><td><input type='text' name='url' value='{$PluginSettings->Settings['url']}' /></td></tr>";
+echo "<tr class='tab_bg_1'><td>".__('Username for Nedi')."</td><td><input type='text' name='user' value='{$PluginSettings->Settings['user']}' /></td></tr>";
+echo "<tr class='tab_bg_1'><td>".__('Password for Nedi')."</td><td><input type='password' name='pass' value='{$PluginSettings->Settings['pass']}' /></td></tr>";
+echo "<tr class='tab_bg_1'><td>".__('Activate autoimport of switches')."</td><td><input type='checkbox' name='auto' $check /></td></tr>";
+echo "<tr class='tab_bg_1'><td>&nbsp;</td><td><input type='submit' class='submit' name='action' value='".__('Submit')."' /></td></tr>";
 
 echo "</table>";
-echo "<a href='start.php'>{$LANG['plugin_nediimport']['util_back']}</a>";
+echo "<a href='start.php'>{__('Back')}</a>";
 echo "</div></form>";
 
 commonFooter();

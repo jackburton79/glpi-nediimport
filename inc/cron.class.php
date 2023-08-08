@@ -38,7 +38,7 @@ class PluginNediimportCron{
 		
 		switch ($name) {
 			case 'nediimport' :
-				return array('description' => "{$LANG['plugin_nediimport']['util_cron_desc']}",
+				return array('description' => __('Automatic synchronisation from Nedi for selected switches'),
 	                         'parameter'   => "params");
 		}
 		return array();

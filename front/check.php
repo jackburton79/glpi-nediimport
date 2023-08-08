@@ -34,7 +34,7 @@ define('GLPI_ROOT', '../../..');
 include (GLPI_ROOT . "/inc/includes.php");
 include("../inc/connection.class.php");
 
-commonHeader($LANG['plugin_nediimport']['title'], $_SERVER['PHP_SELF'],"plugins","nediimport","optionname");
+commonHeader(__('Nedi Data Import'), $_SERVER['PHP_SELF'],"plugins","nediimport","optionname");
 
 echo "<div align='center'><table class='tab_cadre' cellpadding='5' width='70%'>";
 echo "<tr><th>".$LANG['plugin_nediimport']['check_title']."</th></tr>";
@@ -42,15 +42,15 @@ echo "<tr><th>".$LANG['plugin_nediimport']['check_title']."</th></tr>";
 $Con=new PluginNediImportConnection();
 
 if($Con->Connect()){
-	echo "<tr class='tab_bg_1'><td align='center'>{$LANG['plugin_nediimport']['check_success']}<br /></td></tr>";
+	echo "<tr class='tab_bg_1'><td align='center'>{__('Connection to Nedi was successfull!')}<br /></td></tr>";
 }
 else{
-	echo "<tr class='tab_bg_1'><td align='center'>{$LANG['plugin_nediimport']['util_error']}: ".htmlentities($Con->err)."</td></tr>";
+	echo "<tr class='tab_bg_1'><td align='center'>{__('Error')}: ".htmlentities($Con->err)."</td></tr>";
 }
 
 $Con->__destruct();
 
-echo "<tr class='tab_bg_1'><td align='center'><a href='start.php'>{$LANG['plugin_nediimport']['util_back']}</a></td></tr>";
+echo "<tr class='tab_bg_1'><td align='center'><a href='start.php'>{__('Back')}</a></td></tr>";
 
 echo "</table></div>";
 

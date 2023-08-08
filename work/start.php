@@ -67,7 +67,7 @@ $Stat=new Stat(true);
 $Connection=new PluginNediImportConnection();
 if(!$Connection->Connect()){
 	header("HTTP/1.0 202 Could not establish connection to Nedi");
-	die($LANG['plugin_nediimport']['util_error'].": ".$Connection->err);
+	die(__('Error')).": ".$Connection->err);
 }
 
 DeleteOldValues();
@@ -75,11 +75,11 @@ DeleteOldValues();
 $Switches=new Switches($Connection->LoadSwitches());
 $Computers=new Computers();
 $VirtualSwitches=new VirtualSwitches();
-$Stat->WriteStat($LANG['plugin_nediimport']['import_stat_switches'],sizeof($Switches->list));
+$Stat->WriteStat(__('Number of imported switches'),sizeof($Switches->list));
 
 $Switches->CheckNewSwitches();
 $PortNum=$Switches->CheckPorts($Connection);
-$Stat->WriteStat($LANG['plugin_nediimport']['import_stat_ports'], $PortNum);
+$Stat->WriteStat(__('Number of affected ports'), $PortNum);
 $Switches->CheckVlans($Connection);
 
 $UnknownNumber=1;
