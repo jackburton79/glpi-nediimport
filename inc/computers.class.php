@@ -70,26 +70,26 @@ class Computers{
 			
 			$query="SELECT * FROM glpi_computers WHERE name='$Name'";
 			$response=$DB->query($query) or die("error select from glpi_computers ". $DB->error());
-			$Result=$DB->fetch_array($response);
+			$Result=$DB->fetchArray($response);
 			if(empty($Result)){
 				$query="INSERT INTO glpi_computers (name) VALUES ('$Name');";
 				$DB->query($query) or die("error insert into glpi_computers". $DB->error());
 				$query="SELECT * FROM glpi_computers WHERE name='$Name'";
 				$response=$DB->query($query) or die("error select from glpi_computers ". $DB->error());
-				$Result=$DB->fetch_array($response);
+				$Result=$DB->fetchArray($response);
 			}
 			$ComputerID=$Result['id'];
 			$this->list[$x][ID]=$ComputerID;
 			
 			$query="SELECT * FROM glpi_networkports WHERE items_id=$ComputerID AND itemtype='Computer'";
 			$response=$DB->query($query) or die("error select from glpi_networkports". $DB->error());
-			$Result=$DB->fetch_array($response);
+			$Result=$DB->fetchArray($response);
 			if(empty($Result)){
 				$query="INSERT INTO glpi_networkports (items_id,itemtype,name) VALUES ($ComputerID,'Computer','eth0')";
 				$DB->query($query) or die("error insert into glpi_networkports". $DB->error());
 				$query="SELECT * FROM glpi_networkports WHERE items_id=$ComputerID AND itemtype='Computer'";
 				$response=$DB->query($query) or die("error select from glpi_networkports ". $DB->error());
-				$Result=$DB->fetch_array($response);
+				$Result=$DB->fetchArray($response);
 			}
 			$host=explode(".",$this->list[$x][HO]);
 			$this->list[$x][HO]=$host[0];
@@ -129,17 +129,17 @@ class Computers{
 				}
 				$query="SELECT * FROM glpi_networkports WHERE id=$RealPortID";
 				$response=$DB->query($query) or die("error select from glpi_networkports ". $DB->error());
-				$Result=$DB->fetch_array($response);
+				$Result=$DB->fetchArray($response);
 				if($Result['netpoints_id']!=0){
 					$query="SELECT * FROM glpi_netpoints WHERE id={$Result['netpoints_id']}";
 					$response=$DB->query($query) or die("error select from glpi_netpoints ". $DB->error());
-					$Result=$DB->fetch_array($response);
+					$Result=$DB->fetchArray($response);
 					$Location=$Result['locations_id'];
 				}
 				else{
 					$query="SELECT * FROM glpi_networkequipments WHERE id=$RealSwitchID";
 					$response=$DB->query($query) or die("error select from glpi_networkequipments ". $DB->error());
-					$Result=$DB->fetch_array($response);
+					$Result=$DB->fetchArray($response);
 					$Location=$Result['locations_id'];
 				}
 				$query="UPDATE glpi_computers SET locations_id='$Location' WHERE id={$this->list[$x][ID]}";
@@ -155,17 +155,17 @@ class Computers{
 				}
 				$query="SELECT * FROM glpi_networkports WHERE id=$PortID";
 				$response=$DB->query($query) or die("error select from glpi_networkports ". $DB->error());
-				$Result=$DB->fetch_array($response);
+				$Result=$DB->fetchArray($response);
 				if($Result['netpoints_id']!=0){
 					$query="SELECT * FROM glpi_netpoints WHERE id={$Result['netpoints_id']}";
 					$response=$DB->query($query) or die("error select from glpi_netpoints ". $DB->error());
-					$Result=$DB->fetch_array($response);
+					$Result=$DB->fetchArray($response);
 					$Location=$Result['locations_id'];
 				}
 				else{
 					$query="SELECT * FROM glpi_networkequipments WHERE id=$RealSwitchID";
 					$response=$DB->query($query) or die("error select from glpi_networkequipments ". $DB->error());
-					$Result=$DB->fetch_array($response);
+					$Result=$DB->fetchArray($response);
 					$Location=$Result['locations_id'];
 				}
 				$query="UPDATE glpi_computers SET locations_id='$Location' WHERE id={$this->list[$x][ID]}";

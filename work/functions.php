@@ -54,7 +54,7 @@ class Stat{
 		$query="SELECT * FROM glpi_plugin_nediimport_stat ORDER BY id";
 		$response=$DB->query($query) or die("error select glpi_plugin_nediimport_switch_stat ". $DB->error());
 		
-		while($line=$DB->fetch_array($response)){
+		while($line=$DB->fetchArray($response)){
 			echo "<tr class='tab_bg_1'><td>".$line['name']."</td><td>".$line['value']."</td></tr>";
 		}
 	}

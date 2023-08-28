@@ -12,7 +12,7 @@ class PluginNediimportMenu extends CommonGLPI
 
     public static function getMenuName()
     {
-        return __('Nedi Data Import');
+        return __('Nedi Data Import', 'nediimport');
     }
     
     /*public static function getAdditionalMenuLinks()

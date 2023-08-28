@@ -41,15 +41,15 @@ echo "<tr><th>".__('Nedi Data Import', 'Checking communication to Nedi')."</th><
 $Con=new PluginNediImportConnection();
 
 if($Con->Connect()){
-	echo "<tr class='tab_bg_1'><td align='center'>".__('Connection to Nedi was successfull!')."<br /></td></tr>";
+	echo "<tr class='tab_bg_1'><td align='center'>".__('Connection to Nedi was successfull!', 'nediimport')."<br /></td></tr>";
 }
 else{
-	echo "<tr class='tab_bg_1'><td align='center'>".__('Error').": ".htmlentities($Con->err)."</td></tr>";
+	echo "<tr class='tab_bg_1'><td align='center'>".__('Error', 'nediimport').": ".htmlentities($Con->err)."</td></tr>";
 }
 
 $Con->__destruct();
 
-echo "<tr class='tab_bg_1'><td align='center'><a href='start.php'>".__('Back')."</a></td></tr>";
+echo "<tr class='tab_bg_1'><td align='center'><a href='start.php'>".__('Back', 'nediimport')."</a></td></tr>";
 
 echo "</table></div>";
 

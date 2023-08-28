@@ -31,8 +31,7 @@
 // ----------------------------------------------------------------------
 
 if(!isset($Cron)){
-	define('GLPI_ROOT', '../../..');
-	include (GLPI_ROOT . "/inc/includes.php");
+	require "../../../inc/includes.php";
 }
 
 //definition of order in computer info array from nedi
@@ -61,17 +60,20 @@ else{
 	include("../inc/computers.class.php");
 	include("../inc/virtualswitches.class.php");
 }
+#die("DIE");
 
 $Stat=new Stat(true);
 
 $Connection=new PluginNediImportConnection();
 if(!$Connection->Connect()){
 	header("HTTP/1.0 202 Could not establish connection to Nedi");
-	die(__('Error')).": ".$Connection->err);
+	die(__('Error', 'nediimport').": ".$Connection->err);
 }
 
-DeleteOldValues();
+/*DeleteOldValues();
+ */
 
+/*
 $Switches=new Switches($Connection->LoadSwitches());
 $Computers=new Computers();
 $VirtualSwitches=new VirtualSwitches();
@@ -92,7 +94,7 @@ $VirtualSwitches->Search($Computers->list);
 $VirtualSwitches->Create($Switches);
 
 $Computers->CheckComputers($VirtualSwitches,$Switches);
-
+ */
 $Stat->PrintStat();
 
 echo "finished!";

@@ -35,7 +35,7 @@
 require "../../../inc/includes.php";
 include("../inc/switch_list.class.php");
 
-Html::header(__('Nedi Data Import', 'nediimport'), $_SERVER["PHP_SELF"],"plugins", "nediimport", "optionname");
+Html::header(__('Nedi Data Import', 'nediimport'), "","plugins", "nediimport", "optionname");
 
 echo "<form action='switch_conf.php' method='post', name='import'>";
 echo "<div align='center'><table class='tab_cadre' cellpadding='5' width='70%'>";
@@ -55,7 +55,9 @@ var done=false;
 Wait();
 
 function Wait(){
-	loadXMLDoc('../work/start.php');
+	
+	var url = "../work/start.php";
+	loadXMLDoc(url);
 	Loop();
 }
 
@@ -79,7 +81,7 @@ function loadXMLDoc(url){
 	if (xmlhttp!=null){
 		xmlhttp.onreadystatechange=state_Change;
 		xmlhttp.open("GET",url,true);
-		xmlhttp.send(null);
+		xmlhttp.send();
 	}
 	else{
 		alert('<?php echo __("Your browser does not support XMLHTTP.", "nediimport")?>');
@@ -94,7 +96,7 @@ function state_Change(){
 			done=true;
 		}
 		else{
-			alert('<?php echo __("Import could not finish correctly!", "nediimport")?>: \n' + xmlhttp.response);
+			alert('<?php echo __("Import could not finish correctly!", "nediimport")?>: \n' + xmlhttp.status + '\n' + xmlhttp.response);
 			window.location='start.php';
 		}
 	}

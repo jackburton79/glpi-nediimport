@@ -36,14 +36,14 @@ class PluginNediimportCron{
 	static function cronInfo($name) {
 		switch ($name) {
 			case 'nediimport' :
-				return array('description' => __('Automatic synchronisation from Nedi for selected switches'),
+				return array('description' => __('Automatic synchronisation from Nedi for selected switches', 'nediimport'),
 	                         'parameter'   => "params");
 		}
 		return array();
 	}
 	
 	static function cronNediimport() {
-		global $LANG,$DB,$Switches;
+		global $DB,$Switches;
 		
 		$Cron='plugins/nediimport/';
 	

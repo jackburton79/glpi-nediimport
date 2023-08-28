@@ -39,15 +39,12 @@ function plugin_init_nediimport()
 	Plugin::registerClass('PluginNediimportCron');
 	#Plugin::registerClass(Config::class, ['addtabon' => 'Config']);
 
-	//$PLUGIN_HOOKS['menu_entry']['nediimport'] = 'front/start.php';
 	if (Session::getLoginUserID()) {
 		$PLUGIN_HOOKS['menu_toadd']['nediimport'] = [
 			'tools' => 'PluginNediimportMenu',
 		];
 	}
 
-	//$PLUGIN_HOOKS['submenu_entry']['nediimport']['options']['optionname']['title'] = "Start";
-	//$PLUGIN_HOOKS['submenu_entry']['nediimport']['options']['optionname']['page'] = '/plugins/nediimport/front/start.php';
 	$PLUGIN_HOOKS['csrf_compliant']['nediimport'] = true;
 }
 
