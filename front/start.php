@@ -37,7 +37,7 @@ include("../inc/settings.class.php");
 
 $Settings=new PluginNediImportSettings();
 
-commonHeader(__('Nedi Data Import'), $_SERVER['PHP_SELF'],"plugins","nediimport","optionname");
+Html::header(__('Nedi Data Import'), '', 'tools', "pluginnediimportmenu", "nediimport");
 
 echo "<div align='center'><table class='tab_cadre' cellpadding='5' width='70%'>";
 echo "<tr><th>".__('Nedi Import Actions')."</th></tr>";
@@ -51,5 +51,5 @@ echo "<tr class='tab_bg_1'><td><a href='check.php'>".__('Check communication wit
 echo "</table>";
 echo "</div>";
 
-commonFooter();
+Html::footer();
 ?>

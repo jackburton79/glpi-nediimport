@@ -31,6 +31,8 @@
 // ----------------------------------------------------------------------
 
 
+include_once(GLPI_ROOT . "/plugins/nediimport/inc/menu.class.php");
+
 function plugin_nediimport_install(){
 	global $DB;
 	$default_charset = DBConnection::getDefaultCharset();

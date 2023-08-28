@@ -30,19 +30,29 @@
 // Date:						2012-01-17
 // ----------------------------------------------------------------------
 
+use Glpi\Plugin\Hooks;
 
-function plugin_init_nediimport() {
-	global $PLUGIN_HOOKS,$LANG,$CFG_GLPI;
+function plugin_init_nediimport()
+{
+	global $PLUGIN_HOOKS,$CFG_GLPI;
 	
 	Plugin::registerClass('PluginNediimportCron');
-	
-	$PLUGIN_HOOKS['menu_entry']['nediimport'] = 'front/start.php';
-	$PLUGIN_HOOKS['submenu_entry']['nediimport']['options']['optionname']['title'] = "Start";
-	$PLUGIN_HOOKS['submenu_entry']['nediimport']['options']['optionname']['page'] = '/plugins/nediimport/front/start.php';
+	#Plugin::registerClass(Config::class, ['addtabon' => 'Config']);
+
+	//$PLUGIN_HOOKS['menu_entry']['nediimport'] = 'front/start.php';
+	if (Session::getLoginUserID()) {
+		$PLUGIN_HOOKS['menu_toadd']['nediimport'] = [
+			'tools' => 'PluginNediimportMenu',
+		];
+	}
+
+	//$PLUGIN_HOOKS['submenu_entry']['nediimport']['options']['optionname']['title'] = "Start";
+	//$PLUGIN_HOOKS['submenu_entry']['nediimport']['options']['optionname']['page'] = '/plugins/nediimport/front/start.php';
 	$PLUGIN_HOOKS['csrf_compliant']['nediimport'] = true;
 }
 
-function plugin_version_nediimport(){
+function plugin_version_nediimport()
+{
 	return array('name'           => 'Nedi Import',
 	             'version'        => '0.5.0',
 	             'author'         => 'Sein Coray',
@@ -50,7 +60,8 @@ function plugin_version_nediimport(){
 	             'minGlpiVersion' => '0.80');
 }
 
-function plugin_nediimport_check_prerequisites(){
+function plugin_nediimport_check_prerequisites()
+{
   if (version_compare(GLPI_VERSION, '9.5', '>=') && version_compare(GLPI_VERSION, '10.1', '<=')) {
     return true;
   } else {
@@ -63,6 +74,8 @@ function plugin_nediimport_check_prerequisites(){
   }
 }
 
-function plugin_nediimport_check_config(){
+function plugin_nediimport_check_config()
+{
 	return true;
 }
+

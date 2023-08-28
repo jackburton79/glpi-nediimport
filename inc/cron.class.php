@@ -34,8 +34,6 @@
 class PluginNediimportCron{
 	
 	static function cronInfo($name) {
-		global $LANG;
-		
 		switch ($name) {
 			case 'nediimport' :
 				return array('description' => __('Automatic synchronisation from Nedi for selected switches'),
