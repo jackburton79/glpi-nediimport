@@ -31,16 +31,16 @@
 // ----------------------------------------------------------------------
 
 
-define('GLPI_ROOT', '../../..');
-include (GLPI_ROOT . "/inc/includes.php");
+
+require "../../../inc/includes.php";
 include("../inc/switch_list.class.php");
 
-commonHeader($LANG['plugin_nediimport']['title'], $_SERVER['PHP_SELF'],"plugins","nediimport","optionname");
+Html::header(__('Nedi Data Import', 'nediimport'), $_SERVER["PHP_SELF"],"plugins", "nediimport", "optionname");
 
-echo "<form action='switch_conf.php' method='post'>";
+echo "<form action='switch_conf.php' method='post', name='import'>";
 echo "<div align='center'><table class='tab_cadre' cellpadding='5' width='70%'>";
 
-echo "<tr><th>".$LANG['plugin_nediimport']['import_title']."</th></tr>";
+echo "<tr><th>".__('Importing...  Please Wait...')."</th></tr>";
 
 echo "<tr class='tab_bg_1'><td align='center'>";
 
@@ -105,5 +105,5 @@ function state_Change(){
 
 echo "</td></tr></table></div>";
 
-commonFooter();
+Html::footer();
 ?>
