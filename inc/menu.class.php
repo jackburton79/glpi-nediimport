@@ -31,8 +31,8 @@ class PluginNediimportMenu extends CommonGLPI
     {
         $menu = [];
         $menu['title'] = self::getMenuName();
-        $menu['page'] = '/plugins/nediimport/front/start.php';
-        $menu['links']['search'] = '/plugins/nediimport/front/start.php';
+        $menu['page'] = "/".Plugin::getWebDir('nediimport', false).'/front/start.php';
+        $menu['links']['search'] = "/".Plugin::getWebDir('nediimport', false).'/front/start.php';
         //if (PluginRoomRoom::canCreate()) {
         //    $menu['links']['add'] = PluginNediImport::getFormURL(false);
         //}
@@ -56,4 +56,3 @@ class PluginNediimportMenu extends CommonGLPI
     }
 }
 
-?>

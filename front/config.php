@@ -32,8 +32,9 @@
 
 
 define('GLPI_ROOT', '../../..');
-include (GLPI_ROOT . "/inc/includes.php");
-include("../inc/settings.class.php");
+
+require '../../../inc/includes.php';
+require "../inc/settings.class.php";
 
 commonHeader(__('Nedi Data Import'), $_SERVER['PHP_SELF'],"plugins","nediimport","optionname");
 
@@ -85,4 +86,4 @@ echo "<a href='start.php'>{__('Back')}</a>";
 echo "</div></form>";
 
 commonFooter();
-?>
+

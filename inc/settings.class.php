@@ -49,7 +49,7 @@ class PluginNediImportSettings{
 		
 		$query="SELECT * FROM glpi_plugin_nediimport_settings ORDER BY id";
 		$response=$DB->query($query) or die("error reading glpi_plugin_nediimport_settings ". $DB->error());
-		while($zeile=$DB->fetch_array($response)){
+		while($zeile=$DB->fetchArray($response)){
 			$this->Settings["{$zeile['spec']}"]=$zeile['value'];
 		}
 	}
@@ -63,3 +63,4 @@ class PluginNediImportSettings{
 		}
 	}
 }
+

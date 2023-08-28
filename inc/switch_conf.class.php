@@ -31,7 +31,7 @@
 // ----------------------------------------------------------------------
 
 
-class PluginNediImportSwitchConf{
+class PluginNediImportSwitchConf {
 	var $conf;
 	
 	function __construct(){

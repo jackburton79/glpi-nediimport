@@ -31,13 +31,15 @@
 // ----------------------------------------------------------------------
 
 
-define('GLPI_ROOT', '../../..');
-include (GLPI_ROOT . "/inc/includes.php");
+#define('GLPI_ROOT', '../../..');
+
+require '../../../inc/includes.php';
+
 include("../inc/settings.class.php");
 
 $Settings=new PluginNediImportSettings();
 
-Html::header(__('Nedi Data Import'), '', 'tools', "pluginnediimportmenu", "nediimport");
+Html::header(__('Nedi Data Import', 'nediimport'), $_SERVER["PHP_SELF"], 'tools', "pluginnediimportmenu", "nediimport");
 
 echo "<div align='center'><table class='tab_cadre' cellpadding='5' width='70%'>";
 echo "<tr><th>".__('Nedi Import Actions')."</th></tr>";
@@ -52,4 +54,4 @@ echo "</table>";
 echo "</div>";
 
 Html::footer();
-?>
+
