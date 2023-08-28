@@ -46,8 +46,6 @@ class PluginNediImportConnection{
 	}
 	
 	function Connect(){
-		global $LANG;
-		
 		//Load login settings
 		$Settings=new PluginNediImportSettings();
 		$Settings->Load();

@@ -40,7 +40,7 @@ Html::header(__('Nedi Data Import', 'nediimport'), $_SERVER["PHP_SELF"],"plugins
 echo "<form action='switch_conf.php' method='post', name='import'>";
 echo "<div align='center'><table class='tab_cadre' cellpadding='5' width='70%'>";
 
-echo "<tr><th>".__('Importing...  Please Wait...')."</th></tr>";
+echo "<tr><th>".__('Importing...  Please Wait...', 'nediimport')."</th></tr>";
 
 echo "<tr class='tab_bg_1'><td align='center'>";
 
@@ -82,7 +82,7 @@ function loadXMLDoc(url){
 		xmlhttp.send(null);
 	}
 	else{
-		alert("<?php echo $LANG['plugin_nediimport']['import_xmlhttp_error']?>");
+		alert('<?php echo __("Your browser does not support XMLHTTP.", "nediimport")?>');
 		window.location='start.php';
 	}
 }
@@ -94,7 +94,7 @@ function state_Change(){
 			done=true;
 		}
 		else{
-			alert("<?php echo $LANG['plugin_nediimport']['import_http_error']?>: \n"+xmlhttp.response);
+			alert('<?php echo __("Import could not finish correctly!", "nediimport")?>: \n'+xmlhttp.response);
 			window.location='start.php';
 		}
 	}
