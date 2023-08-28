@@ -38,21 +38,21 @@ Html::Header(__('Nedi Data Import', 'nediimport'), $_SERVER['PHP_SELF'], "plugin
 
 $PluginSettings=new PluginNediImportSettings();
 
-if($_POST['action']){
+if (isset($_POST['action'])) {
 	//save changes
-	if($_POST['url']){
+	if (isset($_POST['url'])) {
 		$PluginSettings->Settings['url']=$_POST['url'];
 	}
-	if($_POST['user']){
+	if (isset($_POST['user'])) {
 		$PluginSettings->Settings['user']=$_POST['user'];
 	}
-	if($_POST['pass']){
+	if (isset($_POST['pass'])) {
 		$PluginSettings->Settings['pass']=$_POST['pass'];
 	}
-	if($_POST['auto']){
+	if (isset($_POST['auto'])) {
 		$PluginSettings->Settings['auto']="1";
 	}
-	else{
+	else {
 		$PluginSettings->Settings['auto']="0";
 	}
 	
@@ -80,7 +80,7 @@ echo "<tr class='tab_bg_1'><td>".__('Activate autoimport of switches')."</td><td
 echo "<tr class='tab_bg_1'><td>&nbsp;</td><td><input type='submit' class='submit' name='action' value='".__('Submit')."' /></td></tr>";
 
 echo "</table>";
-echo "<a href='start.php'>{__('Back')}</a>";
+echo "<a href='start.php'>".__('Back')."</a>";
 echo "</div></form>";
 
 Html::footer();
