@@ -69,9 +69,7 @@ if(!$Connection->Connect()){
 	die(__('Error', 'nediimport').": ".$Connection->err);
 }
 
-DeleteOldValues();
- 
-
+NediImport\DeleteOldValues();
 
 $Switches=new Switches($Connection->LoadSwitches());
 $Computers=new Computers();
