@@ -68,8 +68,8 @@ if($PluginSettings->Settings['auto']=="1"){
 else{
 	$check=" ";
 }
-
-echo "<form action='config.php' method='post'>";
+ 
+echo "<form name='config' action='config.php' method='post'>";
 
 echo "<div align='center'><table class='tab_cadre' cellpadding='5' width='70%'>";
 echo "<tr><th colspan='2'>".__('Change Nedi Import settings')."</th></tr>";
@@ -78,10 +78,12 @@ echo "<tr class='tab_bg_1'><td>".__('Username for Nedi')."</td><td><input type='
 echo "<tr class='tab_bg_1'><td>".__('Password for Nedi')."</td><td><input type='password' name='pass' value='{$PluginSettings->Settings['pass']}' /></td></tr>";
 echo "<tr class='tab_bg_1'><td>".__('Activate autoimport of switches')."</td><td><input type='checkbox' name='auto' $check /></td></tr>";
 echo "<tr class='tab_bg_1'><td>&nbsp;</td><td><input type='submit' class='submit' name='action' value='".__('Submit')."' /></td></tr>";
-
 echo "</table>";
 echo "<a href='start.php'>".__('Back')."</a>";
-echo "</div></form>";
+
+echo "</div>";
+
+Html::closeForm();
 
 Html::footer();
 
