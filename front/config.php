@@ -31,12 +31,10 @@
 // ----------------------------------------------------------------------
 
 
-define('GLPI_ROOT', '../../..');
-
 require '../../../inc/includes.php';
 require "../inc/settings.class.php";
 
-commonHeader(__('Nedi Data Import'), $_SERVER['PHP_SELF'],"plugins","nediimport","optionname");
+Html::Header(__('Nedi Data Import', 'nediimport'), $_SERVER['PHP_SELF'], "plugins", "nediimport", "optionname");
 
 $PluginSettings=new PluginNediImportSettings();
 
@@ -85,5 +83,5 @@ echo "</table>";
 echo "<a href='start.php'>{__('Back')}</a>";
 echo "</div></form>";
 
-commonFooter();
+Html::footer();
 
