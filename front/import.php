@@ -94,7 +94,7 @@ function state_Change(){
 			done=true;
 		}
 		else{
-			alert('<?php echo __("Import could not finish correctly!", "nediimport")?>: \n'+xmlhttp.response);
+			alert('<?php echo __("Import could not finish correctly!", "nediimport")?>: \n' + xmlhttp.response);
 			window.location='start.php';
 		}
 	}

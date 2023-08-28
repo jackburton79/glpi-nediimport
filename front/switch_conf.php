@@ -31,11 +31,10 @@
 // ----------------------------------------------------------------------
 
 
-define('GLPI_ROOT', '../../..');
-include (GLPI_ROOT . "/inc/includes.php");
+require '../../../inc/includes.php';
 include("../inc/switch_list.class.php");
 
-commonHeader(__('Nedi Data Import'), $_SERVER['PHP_SELF'],"plugins","nediimport","optionname");
+Html::header(__('Nedi Data Import', 'nediimport'), $_SERVER['PHP_SELF'],"plugins","nediimport","optionname");
 
 $Connection=new PluginNediImportConnection();
 if(!$Connection){
@@ -44,24 +43,23 @@ if(!$Connection){
 $List=new Switches($Connection->GetSwitches());
 $List->Load();
 
-if($_POST['on']||$_POST['off']){
+if (isset($_POST['on']) || isset($_POST['off'])) {
 	//save changes
 	$List->Execute();
 	
-	echo "<div align='center' style='padding: 5px;'>".__('Changes were saved successfully!')."</div>";
+	echo "<div align='center' style='padding: 5px;'>".__('Changes were saved successfully!', 'nediimport')."</div>";
 }
 
 echo "<form action='switch_conf.php' method='post'>";
 echo "<div align='center'><table class='tab_cadre' cellpadding='5' width='70%'>";
-echo "<tr><th colspan='4'>".__('Configure Switch import')."</th></tr>";
-echo "<tr class='tab_bg_1'><td>".__('Select Switches which should be imported to GLPI')."</td>";
+echo "<tr><th colspan='4'>".__('Configure Switch import', 'nediimport')."</th></tr>";
+echo "<tr class='tab_bg_1'><td>".__('Select Switches which should be imported to GLPI', 'nediimport')."</td>";
 
 $List->Draw();
 
 echo "</tr>";
 echo "</table>";
-echo "<a href='start.php'>{__('Back')}</a>";
+echo "<a href='start.php'>".__('Back', 'nediimport')."</a>";
 echo "</div></form>";
 
-commonFooter();
-?>
+Html::footer();

@@ -68,13 +68,13 @@ class PluginNediImportConnection{
 		else{
 			$Info=curl_getinfo($this->con);
 			if($Info['http_code']!=200){
-				$this->err=__('Login failed (HTTP_ERROR)!');
+				$this->err=__('Login failed (HTTP_ERROR)!', 'nediimport');
 				return false;
 			}
 			
 			//check for incorrect login
 			if(stripos($store,"Incorrect Login")){
-				$this->err=__('Incorrect Login!');
+				$this->err=__('Incorrect Login!', 'nediimport');
 				return false;
 			}
 			

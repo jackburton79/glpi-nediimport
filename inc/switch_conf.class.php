@@ -47,7 +47,7 @@ class PluginNediImportSwitchConf {
 		$query="SELECT * FROM glpi_plugin_nediimport_switch_conf ORDER BY id";
 		$response=$DB->query($query) or die("error reading glpi_plugin_nediimport_switch_conf ". $DB->error());
 		$index=0;
-		while($line=$DB->fetch_array($response)){
+		while($line=$DB->fetchArray($response)){
 			$this->conf[$index]['name']=$line['name'];
 			$this->conf[$index]['conf']=$line['conf'];
 			$index++;

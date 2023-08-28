@@ -42,13 +42,13 @@ $Settings=new PluginNediImportSettings();
 Html::header(__('Nedi Data Import', 'nediimport'), $_SERVER["PHP_SELF"], 'tools', "pluginnediimportmenu", "nediimport");
 
 echo "<div align='center'><table class='tab_cadre' cellpadding='5' width='70%'>";
-echo "<tr><th>".__('Nedi Import Actions')."</th></tr>";
-echo "<tr class='tab_bg_1'><td><a href='import.php'>".__('Import data from Nedi')."</a></td></tr>";
-echo "<tr class='tab_bg_1'><td><a href='config.php'>".__('Change Nedi import settings')."</a></td></tr>";
+echo "<tr><th>".__('Nedi Import Actions', 'nediimport')."</th></tr>";
+echo "<tr class='tab_bg_1'><td><a href='import.php'>".__('Import data from Nedi', 'nediimport')."</a></td></tr>";
+echo "<tr class='tab_bg_1'><td><a href='config.php'>".__('Change Nedi import settings', 'nediimport')."</a></td></tr>";
 if($Settings->Settings['auto']=="0"){
-	echo "<tr class='tab_bg_1'><td><a href='switch_conf.php'>".__('Configure Switch import')."</a></td></tr>";
+	echo "<tr class='tab_bg_1'><td><a href='switch_conf.php'>".__('Configure Switch import', 'nediimport')."</a></td></tr>";
 }
-echo "<tr class='tab_bg_1'><td><a href='check.php'>".__('Check communication with Nedi')."</a></td></tr>";
+echo "<tr class='tab_bg_1'><td><a href='check.php'>".__('Check communication with Nedi', 'nediimport')."</a></td></tr>";
 
 echo "</table>";
 echo "</div>";
