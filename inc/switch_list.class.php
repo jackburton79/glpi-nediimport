@@ -63,7 +63,7 @@ class Switches{
 				$Split=$Split[1];
 				$query="SELECT * FROM glpi_networkports WHERE items_id=$SwitchID AND name='$Split' AND itemtype='NetworkEquipment'";
 				$response=$DB->query($query) or die("error select from glpi_networkports ". $DB->error());
-				$Result=$DB->fetch_array($response);
+				$Result=$DB->fetchArray($response);
 				if(empty($Result)){
 					$query="INSERT INTO glpi_networkports (items_id,itemtype,name) VALUES ('$SwitchID','NetworkEquipment','$Split')";
 					$DB->query($query) or die("error insert into glpi_networkports ". $DB->error());
@@ -80,7 +80,7 @@ class Switches{
 		foreach($this->list as $Switch){
 			$query="SELECT name FROM glpi_networkequipments WHERE name='$Switch'";
 			$response=$DB->query($query) or die("error select from glpi_networkequipments ". $DB->error());
-			$Result=$DB->fetch_array($response);
+			$Result=$DB->fetchArray($response);
 			if(empty($Result)){
 				$this->CreateNewSwitch($Switch);
 			}
@@ -100,7 +100,7 @@ class Switches{
 		
 		$query="SELECT * FROM glpi_networkequipments WHERE  name='$Name' limit 1";
 		$response=$DB->query($query) or die("error select from glpi_networkequipments ". $DB->error());
-		$Result=$DB->fetch_array($response);
+		$Result=$DB->fetchArray($response);
 		return $Result;
 	}
 	
@@ -146,7 +146,7 @@ class Switches{
 		//Get information about the port
 		$query="SELECT * FROM glpi_networkports WHERE  items_id='$Switch' AND itemtype='NetworkEquipment' AND name='$Port'";
 		$response=$DB->query($query) or die("error selecting id from glpi_networkports ". $DB->error());
-		$line=$DB->fetch_array($response);
+		$line=$DB->fetchArray($response);
 	
 		//Test if the information is correct
 		if(empty($line)){
@@ -186,7 +186,7 @@ class Switches{
 		//Load info about the VLAN
 		$query="SELECT * FROM glpi_vlans WHERE name='$Name'";
 		$response=$DB->query($query) or die("error select from glpi_vlans ". $DB->error());
-		$line=$DB->fetch_array($response);
+		$line=$DB->fetchArray($response);
 	
 		//Test if there is correct information
 		if(empty($line)){
@@ -218,9 +218,8 @@ class Switches{
 	}
 	
 	function Draw(){
-		global $LANG;
 	
-		echo "<td align='center'>{$LANG['plugin_nediimport']['switch_conf_sync_off']}:<br /><br /><input type='hidden' name='num' value='".sizeof($this->list)."' />";
+		echo "<td align='center'>".__('Switches which will not be synchronized', 'nediimport').":<br /><br /><input type='hidden' name='num' value='".sizeof($this->list)."' />";
 		echo "<select name='off[]' size='".sizeof($this->list)."' style='width: 100px' multiple>";
 		for($x=0;$x<sizeof($this->list);$x++){
 			if($this->conf->GetConf($this->list[$x])==0){
@@ -233,7 +232,7 @@ class Switches{
 			echo "<input type='submit' class='submit' name='add' value='-->' /><br /><br />";
 			echo "<input type='submit' class='submit' name='del' value='<--' />";
 			echo "</td>";
-			echo "<td align='center'>{$LANG['plugin_nediimport']['switch_conf_sync_on']}:<br /><br /><select name='on[]' size='".sizeof($this->list)."' style='width: 100px' multiple>";
+			echo "<td align='center'>".__("Switches which will be synchronized", "nediimport").":<br /><br /><select name='on[]' size='".sizeof($this->list)."' style='width: 100px' multiple>";
 			for($x=0;$x<sizeof($this->list);$x++){
 				if($this->conf->GetConf($this->list[$x])==1){
 					//switch is selected
