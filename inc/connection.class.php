@@ -38,7 +38,8 @@ class PluginNediImportConnection{
 	var $err;
 	
 	function __destruct() {
-		curl_close($this->con);
+	    if (gettype($this->con) == 'resource')
+	        curl_close($this->con);
 	}
 	
 	function __construct() {
