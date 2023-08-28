@@ -31,24 +31,23 @@
 // ----------------------------------------------------------------------
 
 
-define('GLPI_ROOT', '../../..');
-include (GLPI_ROOT . "/inc/includes.php");
+require "../../../inc/includes.php";
 include("../inc/switch_list.class.php");
 include("../work/functions.php");
 
-commonHeader($LANG['plugin_nediimport']['title'], $_SERVER['PHP_SELF'],"plugins","nediimport","optionname");
+Html::header(__("Import done!", "nediimport"), $_SERVER['PHP_SELF'],"plugins","nediimport","optionname");
 
 echo "<form action='switch_conf.php' method='post'>";
 echo "<div align='center'><table class='tab_cadre' cellpadding='5' width='70%'>";
 
-echo "<tr><th colspan='2'>".$LANG['plugin_nediimport']['import_done_title']."</th></tr>";
+echo "<tr><th colspan='2'>".__("Import done!", "nediimport")."</th></tr>";
 
 $Stat=new Stat(false);
 $Stat->PrintStat();
 
 echo "</table>";
-echo "<a href='start.php'>{$LANG['plugin_nediimport']['util_back']}</a>";
+echo "<a href='start.php'>".__("Back", "nediimport")."</a>";
 echo "</div>";
 
-commonFooter();
+Html::footer();
 ?>
