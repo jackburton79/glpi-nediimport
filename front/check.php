@@ -33,7 +33,7 @@
 require '../../../inc/includes.php';
 include("../inc/connection.class.php");
 
-html::Header(__('Nedi Data Import', 'Checking communication to Nedi'), $_SERVER['PHP_SELF'],"plugins","nediimport","optionname");
+html::Header(__('Nedi Data Import', 'Checking communication to Nedi'), "" ,"tools","nediimport","optionname");
 
 echo "<div align='center'><table class='tab_cadre' cellpadding='5' width='70%'>";
 echo "<tr><th>".__('Nedi Data Import', 'Checking communication to Nedi')."</th></tr>";

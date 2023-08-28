@@ -60,9 +60,8 @@ else{
 	include("../inc/computers.class.php");
 	include("../inc/virtualswitches.class.php");
 }
-#die("DIE");
 
-$Stat=new Stat(true);
+$Stat=new NediImport\Stat(true);
 
 $Connection=new PluginNediImportConnection();
 if(!$Connection->Connect()){
@@ -70,10 +69,10 @@ if(!$Connection->Connect()){
 	die(__('Error', 'nediimport').": ".$Connection->err);
 }
 
-/*DeleteOldValues();
- */
+DeleteOldValues();
+ 
 
-/*
+
 $Switches=new Switches($Connection->LoadSwitches());
 $Computers=new Computers();
 $VirtualSwitches=new VirtualSwitches();
@@ -94,7 +93,7 @@ $VirtualSwitches->Search($Computers->list);
 $VirtualSwitches->Create($Switches);
 
 $Computers->CheckComputers($VirtualSwitches,$Switches);
- */
+ 
 $Stat->PrintStat();
 
 echo "finished!";

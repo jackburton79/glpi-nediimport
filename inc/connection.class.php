@@ -38,17 +38,14 @@ class PluginNediImportConnection{
 	var $err;
 	
 	function __destruct() {
-		error_log("Destruct", 0);
 		curl_close($this->con);
 	}
 	
 	function __construct() {
-		error_log("Construct");
 		$this->Connect();
 	}
 	
 	function Connect() {
-		error_log("Connect");
 		//Load login settings
 		$Settings=new PluginNediImportSettings();
 		$Settings->Load();
@@ -61,7 +58,6 @@ class PluginNediImportConnection{
 		curl_setopt($this->con,CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($this->con,CURLOPT_SSL_VERIFYPEER, false);
 		
-		error_log($Settings->Settings['url']);	
 		//Login
 		$store=curl_exec($this->con);
 		

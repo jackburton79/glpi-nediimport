@@ -32,17 +32,18 @@
 
 
 require "../../../inc/includes.php";
+
 include("../inc/switch_list.class.php");
 include("../work/functions.php");
 
-Html::header(__("Import done!", "nediimport"), $_SERVER['PHP_SELF'],"plugins","nediimport","optionname");
+Html::header(__('Nedi Data Import','Import done!'), '', 'tools', 'pluginnediimport');
 
-echo "<form action='switch_conf.php' method='post'>";
+echo "<form action='switch_conf.php' method='post', name='import_done'>";
 echo "<div align='center'><table class='tab_cadre' cellpadding='5' width='70%'>";
 
 echo "<tr><th colspan='2'>".__("Import done!", "nediimport")."</th></tr>";
 
-$Stat=new Stat(false);
+$Stat=new NediImport\Stat(false);
 $Stat->PrintStat();
 
 echo "</table>";
@@ -50,4 +51,3 @@ echo "<a href='start.php'>".__("Back", "nediimport")."</a>";
 echo "</div>";
 
 Html::footer();
-?>

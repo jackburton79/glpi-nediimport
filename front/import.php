@@ -35,7 +35,7 @@
 require "../../../inc/includes.php";
 include("../inc/switch_list.class.php");
 
-Html::header(__('Nedi Data Import', 'nediimport'), "","plugins", "nediimport", "optionname");
+Html::header(__('Nedi Data Import', 'nediimport'), "", "tools", "nediimport", "optionname");
 
 echo "<form action='switch_conf.php' method='post', name='import'>";
 echo "<div align='center'><table class='tab_cadre' cellpadding='5' width='70%'>";

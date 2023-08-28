@@ -30,8 +30,9 @@
 // Date:						2012-01-23
 // ----------------------------------------------------------------------
 
+Namespace NediImport;
 
-class Stat{
+class Stat {
 	function __construct($Del){
 		global $DB;
 		
