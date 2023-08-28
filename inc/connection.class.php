@@ -62,7 +62,7 @@ class PluginNediImportConnection{
 		$store=curl_exec($this->con);
 		
 		if(!$store){
-			$this->err=__('Connection failed!');
+			$this->err=__('Connection failed!', 'nediimport');
 			return false;
 		}
 		else{
