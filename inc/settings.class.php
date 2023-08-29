@@ -31,7 +31,11 @@
 // ----------------------------------------------------------------------
 
 
-class PluginNediImportSettings{
+if (!defined('GLPI_ROOT')) {
+	   die("Sorry. You can't access directly to this file");
+}
+
+class PluginNediImportSettings extends CommonDBTM {
 	
 	var $Settings=array();
 	
@@ -43,7 +47,12 @@ class PluginNediImportSettings{
 		
 		$this->Load();
 	}
-	
+	static $rightname = 'plugin_nediimport';
+
+   	static function getTypeName($nb = 0) {
+   		return __('Nedi Import Settings', 'nediimport');
+	}
+
 	function Load(){
 		global $DB;
 		

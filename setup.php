@@ -35,7 +35,9 @@ use Glpi\Plugin\Hooks;
 function plugin_init_nediimport()
 {
 	global $PLUGIN_HOOKS,$CFG_GLPI;
-	
+
+	$PLUGIN_HOOKS['csrf_compliant']['nediimport'] = true;
+
 	Plugin::registerClass('PluginNediimportCron');
 	#Plugin::registerClass(Config::class, ['addtabon' => 'Config']);
 
@@ -45,7 +47,10 @@ function plugin_init_nediimport()
 		];
 	}
 
-	$PLUGIN_HOOKS['csrf_compliant']['nediimport'] = true;
+	if (Session::haveRight("plugin_printercounters", UPDATE)) {
+		$PLUGIN_HOOKS['config_page']['nediimport'] = 'front/config.php';
+        }
+
 }
 
 function plugin_version_nediimport()
