@@ -1,55 +1,32 @@
 <?php
-/*
-*	$Id: start.php 3 2012-01-24 11:05:35Z seincoray $
-*
-* 	LICENSE
-*
-* 	This file is part of Nedi Import.
-*   Copyright (C) 2012  Sein Coray
-*
-*   This program is free software: you can redistribute it and/or modify
-*   it under the terms of the GNU General Public License as published by
-*   the Free Software Foundation, either version 3 of the License, or
-*   (at your option) any later version.
-*
-*   This program is distributed in the hope that it will be useful,
-*   but WITHOUT ANY WARRANTY; without even the implied warranty of
-*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*   GNU General Public License for more details.
-*
-*   You should have received a copy of the GNU General Public License
-*   along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*
-*/
-// ----------------------------------------------------------------------
-// Nedi Import  - a plugin for GLPI
-// Copyright 2012 by Sein Coray
-// http://sourceforge.net/p/nediimport
-// ----------------------------------------------------------------------
-// Original Author of file: 	Sein Coray
-// Date:						2012-01-24
-// ----------------------------------------------------------------------
 
+/**
+ * NeDi Import - a plugin for GLPI
+ * Licensed under the GNU GPL v3 or later.
+ */
 
-define('GLPI_ROOT', '../../..');
-include (GLPI_ROOT . "/inc/includes.php");
-include("../inc/settings.class.php");
+use GlpiPlugin\Nediimport\Config;
+use GlpiPlugin\Nediimport\Menu;
 
-$Settings=new PluginNediImportSettings();
+Session::checkRight('config', READ);
 
-commonHeader($LANG['plugin_nediimport']['title'], $_SERVER['PHP_SELF'],"plugins","nediimport","optionname");
+Html::header(__('NeDi import', 'nediimport'), $_SERVER['PHP_SELF'], 'tools', Menu::class);
 
-echo "<div align='center'><table class='tab_cadre' cellpadding='5' width='70%'>";
-echo "<tr><th>".$LANG['plugin_nediimport']['mainmenu']."</th></tr>";
-echo "<tr class='tab_bg_1'><td><a href='import.php'>".$LANG['plugin_nediimport']['import_action']."</a></td></tr>";
-echo "<tr class='tab_bg_1'><td><a href='config.php'>".$LANG['plugin_nediimport']['config_action']."</a></td></tr>";
-if($Settings->Settings['auto']=="0"){
-	echo "<tr class='tab_bg_1'><td><a href='switch_conf.php'>".$LANG['plugin_nediimport']['switch_conf_action']."</a></td></tr>";
+$cfg  = Config::get();
+$last = json_decode($cfg['last_stats'] ?: '[]', true) ?: [];
+
+echo "<div class='container-fluid'><div class='card'><div class='card-header'><h3 class='card-title'>"
+    . __s('NeDi import', 'nediimport') . "</h3></div><div class='list-group list-group-flush'>";
+echo "<a class='list-group-item' href='import.php'><i class='ti ti-download me-2'></i>" . __s('Import data from NeDi', 'nediimport') . '</a>';
+echo "<a class='list-group-item' href='config.php'><i class='ti ti-settings me-2'></i>" . __s('NeDi connection and settings', 'nediimport') . '</a>';
+if ($cfg['auto_all'] !== '1') {
+    echo "<a class='list-group-item' href='switches.php'><i class='ti ti-list-check me-2'></i>" . __s('Choose the switches to import', 'nediimport') . '</a>';
 }
-echo "<tr class='tab_bg_1'><td><a href='check.php'>".$LANG['plugin_nediimport']['check_action']."</a></td></tr>";
+echo '</div></div>';
 
-echo "</table>";
-echo "</div>";
+if ($cfg['last_run'] !== '') {
+    echo "<p class='mt-3 text-muted'>" . sprintf(__s('Last import: %s', 'nediimport'), htmlspecialchars($cfg['last_run'])) . '</p>';
+}
+echo '</div>';
 
-commonFooter();
-?>
+Html::footer();

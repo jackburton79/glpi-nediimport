@@ -1,88 +1,78 @@
 <?php
-/*
-*	$Id: config.php 3 2012-01-24 11:05:35Z seincoray $
-*
-* 	LICENSE
-*
-* 	This file is part of Nedi Import.
-*   Copyright (C) 2012  Sein Coray
-*
-*   This program is free software: you can redistribute it and/or modify
-*   it under the terms of the GNU General Public License as published by
-*   the Free Software Foundation, either version 3 of the License, or
-*   (at your option) any later version.
-*
-*   This program is distributed in the hope that it will be useful,
-*   but WITHOUT ANY WARRANTY; without even the implied warranty of
-*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*   GNU General Public License for more details.
-*
-*   You should have received a copy of the GNU General Public License
-*   along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*
-*/
-// ----------------------------------------------------------------------
-// Nedi Import  - a plugin for GLPI
-// Copyright 2012 by Sein Coray
-// http://sourceforge.net/p/nediimport
-// ----------------------------------------------------------------------
-// Original Author of file: 	Sein Coray
-// Date:						2012-01-17
-// ----------------------------------------------------------------------
 
+/**
+ * NeDi Import - a plugin for GLPI
+ * Licensed under the GNU GPL v3 or later.
+ */
 
-define('GLPI_ROOT', '../../..');
-include (GLPI_ROOT . "/inc/includes.php");
-include("../inc/settings.class.php");
+use GlpiPlugin\Nediimport\Config;
+use GlpiPlugin\Nediimport\Menu;
+use GlpiPlugin\Nediimport\NediSource;
 
-commonHeader($LANG['plugin_nediimport']['title'], $_SERVER['PHP_SELF'],"plugins","nediimport","optionname");
+Session::checkRight('config', UPDATE);
+Plugin::load('nediimport');
 
-$PluginSettings=new PluginNediImportSettings();
+$message = '';
+if (isset($_POST['save']) || isset($_POST['test'])) {
+    $new = [
+        'nedi_host'    => trim((string) $_POST['nedi_host']),
+        'nedi_port'    => (string) max(1, (int) $_POST['nedi_port']),
+        'nedi_db'      => trim((string) $_POST['nedi_db']),
+        'nedi_user'    => trim((string) $_POST['nedi_user']),
+        'auto_all'     => !empty($_POST['auto_all']) ? '1' : '0',
+        'max_age_days' => (string) max(1, (int) $_POST['max_age_days']),
+        'entities_id'  => (string) (int) $_POST['entities_id'],
+    ];
+    // An empty password field keeps the stored one
+    if ((string) $_POST['nedi_pass'] !== '') {
+        $new['nedi_pass'] = (string) $_POST['nedi_pass'];
+    }
+    Config::save($new);
 
-if($_POST['action']){
-	//save changes
-	if($_POST['url']){
-		$PluginSettings->Settings['url']=$_POST['url'];
-	}
-	if($_POST['user']){
-		$PluginSettings->Settings['user']=$_POST['user'];
-	}
-	if($_POST['pass']){
-		$PluginSettings->Settings['pass']=$_POST['pass'];
-	}
-	if($_POST['auto']){
-		$PluginSettings->Settings['auto']="1";
-	}
-	else{
-		$PluginSettings->Settings['auto']="0";
-	}
-	
-	$PluginSettings->Save();
-	echo "<div align='center' style='padding: 5px;'>".$LANG['plugin_nediimport']['config_success']."</div>";
+    if (isset($_POST['test'])) {
+        try {
+            $devices = NediSource::fromConfig(Config::get())->devices();
+            Session::addMessageAfterRedirect(sprintf(__('Connection to NeDi OK: %d devices found', 'nediimport'), count($devices)), false, INFO);
+        } catch (Throwable $e) {
+            Session::addMessageAfterRedirect(sprintf(__('Cannot connect to NeDi: %s', 'nediimport'), $e->getMessage()), false, ERROR);
+        }
+    } else {
+        Session::addMessageAfterRedirect(__('Settings saved', 'nediimport'), false, INFO);
+    }
+    Html::back();
 }
 
-//load informations
+Html::header(__('NeDi import', 'nediimport'), $_SERVER['PHP_SELF'], 'tools', Menu::class);
 
-if($PluginSettings->Settings['auto']=="1"){
-	$check=" checked='checked' ";
-}
-else{
-	$check=" ";
-}
+$cfg = Config::get();
+$h   = static fn(string $v): string => htmlspecialchars($v, ENT_QUOTES);
 
-echo "<form action='config.php' method='post'>";
+echo "<form method='post' action='config.php' class='container-fluid'><div class='card'>";
+echo "<div class='card-header'><h3 class='card-title'>" . __s('NeDi connection and settings', 'nediimport') . '</h3></div>';
+echo "<div class='card-body'><p class='text-muted'>"
+    . __s('The plugin reads directly from the NeDi database. A read-only MySQL/MariaDB account is enough.', 'nediimport')
+    . '</p>';
 
-echo "<div align='center'><table class='tab_cadre' cellpadding='5' width='70%'>";
-echo "<tr><th colspan='2'>".$LANG['plugin_nediimport']['settings_title']."</th></tr>";
-echo "<tr class='tab_bg_1'><td>".$LANG['plugin_nediimport']['config_url']."</td><td><input type='text' name='url' value='{$PluginSettings->Settings['url']}' /></td></tr>";
-echo "<tr class='tab_bg_1'><td>".$LANG['plugin_nediimport']['config_user']."</td><td><input type='text' name='user' value='{$PluginSettings->Settings['user']}' /></td></tr>";
-echo "<tr class='tab_bg_1'><td>".$LANG['plugin_nediimport']['config_pass']."</td><td><input type='password' name='pass' value='{$PluginSettings->Settings['pass']}' /></td></tr>";
-echo "<tr class='tab_bg_1'><td>".$LANG['plugin_nediimport']['config_autoimport']."</td><td><input type='checkbox' name='auto' $check /></td></tr>";
-echo "<tr class='tab_bg_1'><td>&nbsp;</td><td><input type='submit' class='submit' name='action' value='".$LANG['plugin_nediimport']['util_submit']."' /></td></tr>";
+$row = static function (string $label, string $field) {
+    echo "<div class='mb-3 row'><label class='col-sm-3 col-form-label'>$label</label><div class='col-sm-6'>$field</div></div>";
+};
+$row(__s('NeDi database host', 'nediimport'), "<input class='form-control' name='nedi_host' value='" . $h($cfg['nedi_host']) . "'>");
+$row(__s('Port', 'nediimport'), "<input class='form-control' type='number' name='nedi_port' value='" . $h($cfg['nedi_port']) . "'>");
+$row(__s('Database name', 'nediimport'), "<input class='form-control' name='nedi_db' value='" . $h($cfg['nedi_db']) . "'>");
+$row(__s('User', 'nediimport'), "<input class='form-control' name='nedi_user' value='" . $h($cfg['nedi_user']) . "'>");
+$row(__s('Password', 'nediimport'), "<input class='form-control' type='password' name='nedi_pass' autocomplete='new-password' placeholder='"
+    . ($cfg['nedi_pass'] !== '' ? __s('(unchanged)', 'nediimport') : '') . "'>");
+$row(__s('Import every device found in NeDi', 'nediimport'), "<input class='form-check-input' type='checkbox' name='auto_all' value='1'" . ($cfg['auto_all'] === '1' ? ' checked' : '') . '>');
+$row(__s('Ignore nodes not seen for (days)', 'nediimport'), "<input class='form-control' type='number' min='1' name='max_age_days' value='" . $h($cfg['max_age_days']) . "'>");
 
-echo "</table>";
-echo "<a href='start.php'>{$LANG['plugin_nediimport']['util_back']}</a>";
-echo "</div></form>";
+ob_start();
+Entity::dropdown(['name' => 'entities_id', 'value' => (int) $cfg['entities_id']]);
+$row(__s('Entity for created items', 'nediimport'), ob_get_clean());
 
-commonFooter();
-?>
+echo "</div><div class='card-footer'>";
+echo "<button class='btn btn-primary me-2' name='save' value='1'>" . _sx('button', 'Save') . '</button>';
+echo "<button class='btn btn-outline-secondary' name='test' value='1'>" . __s('Save and test connection', 'nediimport') . '</button>';
+echo '</div></div>';
+Html::closeForm();
+
+Html::footer();

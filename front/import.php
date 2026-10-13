@@ -1,109 +1,52 @@
 <?php
-/*
-*	$Id: import.php 3 2012-01-24 11:05:35Z seincoray $
-*
-* 	LICENSE
-*
-* 	This file is part of Nedi Import.
-*   Copyright (C) 2012  Sein Coray
-*
-*   This program is free software: you can redistribute it and/or modify
-*   it under the terms of the GNU General Public License as published by
-*   the Free Software Foundation, either version 3 of the License, or
-*   (at your option) any later version.
-*
-*   This program is distributed in the hope that it will be useful,
-*   but WITHOUT ANY WARRANTY; without even the implied warranty of
-*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*   GNU General Public License for more details.
-*
-*   You should have received a copy of the GNU General Public License
-*   along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*
-*/
-// ----------------------------------------------------------------------
-// Nedi Import  - a plugin for GLPI
-// Copyright 2012 by Sein Coray
-// http://sourceforge.net/p/nediimport
-// ----------------------------------------------------------------------
-// Original Author of file: 	Sein Coray
-// Date:						2012-01-17
-// ----------------------------------------------------------------------
 
+/**
+ * NeDi Import - a plugin for GLPI
+ * Licensed under the GNU GPL v3 or later.
+ */
 
-define('GLPI_ROOT', '../../..');
-include (GLPI_ROOT . "/inc/includes.php");
-include("../inc/switch_list.class.php");
+use GlpiPlugin\Nediimport\Importer;
+use GlpiPlugin\Nediimport\Menu;
 
-commonHeader($LANG['plugin_nediimport']['title'], $_SERVER['PHP_SELF'],"plugins","nediimport","optionname");
+Session::checkRight('config', UPDATE);
 
-echo "<form action='switch_conf.php' method='post'>";
-echo "<div align='center'><table class='tab_cadre' cellpadding='5' width='70%'>";
+Html::header(__('NeDi import', 'nediimport'), $_SERVER['PHP_SELF'], 'tools', Menu::class);
 
-echo "<tr><th>".$LANG['plugin_nediimport']['import_title']."</th></tr>";
+echo "<div class='container-fluid'><div class='card'><div class='card-header'><h3 class='card-title'>"
+    . __s('Import data from NeDi', 'nediimport') . "</h3></div><div class='card-body'>";
 
-echo "<tr class='tab_bg_1'><td align='center'>";
+if (isset($_POST['run'])) {
+    $result = (new Importer())->run();
 
-?>
-
-<img src='../pics/waiting.gif' width='32px' />
-
-<script type='text/javascript'>
-var xmlhttp;
-var done=false;
-
-Wait();
-
-function Wait(){
-	loadXMLDoc('../work/start.php');
-	Loop();
+    $labels = [
+        'switches'          => __s('Switches synchronised', 'nediimport'),
+        'switches_created'  => __s('Switches created', 'nediimport'),
+        'ports_created'     => __s('Ports created', 'nediimport'),
+        'vlans_created'     => __s('VLANs created', 'nediimport'),
+        'nodes'             => __s('Nodes processed', 'nediimport'),
+        'computers_created' => __s('Computers created', 'nediimport'),
+        'virtual_switches'  => __s('Virtual switches created', 'nediimport'),
+        'links'             => __s('Cables created or changed', 'nediimport'),
+        'errors'            => __s('Errors', 'nediimport'),
+    ];
+    echo "<table class='table table-sm w-auto'>";
+    foreach ($labels as $key => $label) {
+        echo "<tr><td>$label</td><td class='text-end'>" . (int) $result->stats[$key] . '</td></tr>';
+    }
+    echo '</table>';
+    if ($result->warnings) {
+        echo "<h4>" . __s('Messages', 'nediimport') . "</h4><ul>";
+        foreach (array_slice($result->warnings, 0, 100) as $w) {
+            echo '<li>' . htmlspecialchars($w) . '</li>';
+        }
+        echo '</ul>';
+    }
+} else {
+    echo '<p>' . __s('Read switches, ports, VLANs and attached nodes from NeDi and update GLPI. Nothing is deleted. This can take a while.', 'nediimport') . '</p>';
+    echo "<form method='post' action='import.php'><button class='btn btn-primary' name='run' value='1'>"
+        . __s('Start import', 'nediimport') . '</button>';
+    Html::closeForm();
 }
 
-function Loop(){
-	window.setTimeout(function(){Loop()},1000);
-	if(done==true){
-		window.location='import_done.php';
-	}
-}
-
-function loadXMLDoc(url){
-	xmlhttp=null;
-	if (window.XMLHttpRequest){
-		// code for all new browsers
-		xmlhttp=new XMLHttpRequest();
-	}
-	else if (window.ActiveXObject){
-		// code for IE5 and IE6
-		xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
-	}
-	if (xmlhttp!=null){
-		xmlhttp.onreadystatechange=state_Change;
-		xmlhttp.open("GET",url,true);
-		xmlhttp.send(null);
-	}
-	else{
-		alert("<?php echo $LANG['plugin_nediimport']['import_xmlhttp_error']?>");
-		window.location='start.php';
-	}
-}
-
-function state_Change(){
-	if (xmlhttp.readyState==4){
-		// 4 = "loaded"
-		if (xmlhttp.status==200){
-			done=true;
-		}
-		else{
-			alert("<?php echo $LANG['plugin_nediimport']['import_http_error']?>: \n"+xmlhttp.response);
-			window.location='start.php';
-		}
-	}
-}
-</script>
-
-<?php 
-
-echo "</td></tr></table></div>";
-
-commonFooter();
-?>
+echo '</div></div></div>';
+Html::footer();

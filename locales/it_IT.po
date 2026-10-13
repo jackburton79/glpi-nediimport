@@ -1,0 +1,108 @@
+# Italian translation of the NeDi Import plugin
+msgid ""
+msgstr ""
+"Project-Id-Version: nediimport 1.0.0\n"
+"Language: it_IT\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "(unchanged)"
+msgstr "(invariata)"
+
+msgid "Cables created or changed"
+msgstr "Cavi creati o modificati"
+
+msgid "Cannot connect to NeDi: %s"
+msgstr "Impossibile connettersi a NeDi: %s"
+
+msgid "Cannot read from NeDi: %s"
+msgstr "Impossibile leggere da NeDi: %s"
+
+msgid "Choose the switches to import"
+msgstr "Scegli gli switch da importare"
+
+msgid "Computers created"
+msgstr "Computer creati"
+
+msgid "Connection to NeDi OK: %d devices found"
+msgstr "Connessione a NeDi riuscita: trovati %d dispositivi"
+
+msgid "Database name"
+msgstr "Nome del database"
+
+msgid "Entity for created items"
+msgstr "Entità per gli elementi creati"
+
+msgid "Errors"
+msgstr "Errori"
+
+msgid "Ignore nodes not seen for (days)"
+msgstr "Ignora i nodi non visti da (giorni)"
+
+msgid "Import data from NeDi"
+msgstr "Importa i dati da NeDi"
+
+msgid "Import every device found in NeDi"
+msgstr "Importa tutti i dispositivi trovati in NeDi"
+
+msgid "Last import: %s"
+msgstr "Ultima importazione: %s"
+
+msgid "Messages"
+msgstr "Messaggi"
+
+msgid "NeDi connection and settings"
+msgstr "Connessione a NeDi e impostazioni"
+
+msgid "NeDi database host"
+msgstr "Host del database NeDi"
+
+msgid "NeDi import"
+msgstr "Importazione da NeDi"
+
+msgid "Nodes processed"
+msgstr "Nodi elaborati"
+
+msgid "Password"
+msgstr "Password"
+
+msgid "Port"
+msgstr "Porta"
+
+msgid "Ports created"
+msgstr "Porte create"
+
+msgid "Read switches, ports, VLANs and attached nodes from NeDi and update GLPI. Nothing is deleted. This can take a while."
+msgstr "Legge da NeDi switch, porte, VLAN e nodi collegati e aggiorna GLPI. Non viene cancellato nulla. Può richiedere del tempo."
+
+msgid "Save and test connection"
+msgstr "Salva e verifica la connessione"
+
+msgid "Settings saved"
+msgstr "Impostazioni salvate"
+
+msgid "Start import"
+msgstr "Avvia l'importazione"
+
+msgid "Switches created"
+msgstr "Switch creati"
+
+msgid "Switches synchronised"
+msgstr "Switch sincronizzati"
+
+msgid "Synchronise switches, VLANs and nodes from NeDi"
+msgstr "Sincronizza switch, VLAN e nodi da NeDi"
+
+msgid "The plugin reads directly from the NeDi database. A read-only MySQL/MariaDB account is enough."
+msgstr "Il plugin legge direttamente dal database di NeDi. È sufficiente un utente MySQL/MariaDB in sola lettura."
+
+msgid "User"
+msgstr "Utente"
+
+msgid "VLANs created"
+msgstr "VLAN create"
+
+msgid "Virtual switches created"
+msgstr "Switch virtuali creati"
