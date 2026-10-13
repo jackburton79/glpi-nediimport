@@ -1,67 +1,53 @@
 <?php
-/*
-*	$Id: setup.php 3 2012-01-24 11:05:35Z seincoray $
-*
-* 	LICENSE
-*
-* 	This file is part of Nedi Import.
-*   Copyright (C) 2012  Sein Coray
-*
-*   This program is free software: you can redistribute it and/or modify
-*   it under the terms of the GNU General Public License as published by
-*   the Free Software Foundation, either version 3 of the License, or
-*   (at your option) any later version.
-*
-*   This program is distributed in the hope that it will be useful,
-*   but WITHOUT ANY WARRANTY; without even the implied warranty of
-*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*   GNU General Public License for more details.
-*
-*   You should have received a copy of the GNU General Public License
-*   along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*
-*/
-// ----------------------------------------------------------------------
-// Nedi Import  - a plugin for GLPI
-// Copyright 2012 by Sein Coray
-// http://sourceforge.net/p/nediimport
-// ----------------------------------------------------------------------
-// Original Author of file: 	Sein Coray
-// Date:						2012-01-17
-// ----------------------------------------------------------------------
 
+/**
+ * NeDi Import - a plugin for GLPI
+ *
+ * Originally written by Sein Coray (2012), ported to GLPI 11.
+ * Licensed under the GNU GPL v3 or later.
+ */
 
-function plugin_init_nediimport() {
-	global $PLUGIN_HOOKS,$LANG,$CFG_GLPI;
-	
-	Plugin::registerClass('PluginNediimportCron');
-	
-	$PLUGIN_HOOKS['menu_entry']['nediimport'] = 'front/start.php';
-	$PLUGIN_HOOKS['submenu_entry']['nediimport']['options']['optionname']['title'] = "Start";
-	$PLUGIN_HOOKS['submenu_entry']['nediimport']['options']['optionname']['page'] = '/plugins/nediimport/front/start.php';
-}
+use GlpiPlugin\Nediimport\Config;
+use GlpiPlugin\Nediimport\Menu;
 
-function plugin_version_nediimport(){
-	return array('name'           => 'Nedi Import',
-	             'version'        => '0.5.0',
-	             'author'         => 'Sein Coray',
-	             'homepage'       => 'http://nediimport.kanajan.ch',
-	             'minGlpiVersion' => '0.80');
-}
+define('PLUGIN_NEDIIMPORT_VERSION', '1.0.0');
+define('PLUGIN_NEDIIMPORT_MIN_GLPI', '11.0.0');
+define('PLUGIN_NEDIIMPORT_MAX_GLPI', '11.99.99');
 
-function plugin_nediimport_check_prerequisites(){
-  if (version_compare(GLPI_VERSION, '9.5', '>=') && version_compare(GLPI_VERSION, '10.1', '<=')) {
-    return true;
-  } else {
-    if (method_exists('Plugin', 'messageIncompatible')) {
-      echo Plugin::messageIncompatible('core', '9.5', '10.1');
-    } else {
-      echo 'This plugin requires GLPI >= 9.5 && <= 10.1';
-      return false;
+function plugin_init_nediimport(): void
+{
+    global $PLUGIN_HOOKS;
+
+    if (Session::getLoginUserID() && Config::canView()) {
+        $PLUGIN_HOOKS['menu_toadd']['nediimport'] = ['tools' => Menu::class];
+        $PLUGIN_HOOKS['config_page']['nediimport'] = 'front/config.php';
     }
-  }
 }
 
-function plugin_nediimport_check_config(){
-	return true;
+function plugin_version_nediimport(): array
+{
+    return [
+        'name'         => 'NeDi Import',
+        'version'      => PLUGIN_NEDIIMPORT_VERSION,
+        'author'       => 'Sein Coray, Stefano Ceccherini',
+        'license'      => 'GPLv3+',
+        'homepage'     => 'https://github.com/jackburton79/glpi-nediimport',
+        'requirements' => [
+            'glpi' => [
+                'min' => PLUGIN_NEDIIMPORT_MIN_GLPI,
+                'max' => PLUGIN_NEDIIMPORT_MAX_GLPI,
+            ],
+            'php' => ['exts' => ['pdo_mysql' => ['required' => true]]],
+        ],
+    ];
+}
+
+function plugin_nediimport_check_prerequisites(): bool
+{
+    return true;
+}
+
+function plugin_nediimport_check_config($verbose = false): bool
+{
+    return true;
 }
