@@ -31,7 +31,10 @@ Tools > NeDi import:
 1. "NeDi connection and settings": database host/user/password, entity for new
    items, age limit for nodes. "Save and test connection" checks the access.
 2. "Choose the switches to import" (unless "import every device" is enabled).
-3. "Import data from NeDi" runs the import. The same import is available as the
+3. "Import data from NeDi": "Preview" shows what would be created or changed, per switch,
+   without writing anything; tick the nodes you want and apply one switch at a time
+   (run the preview again to check that nothing is left to do). "Import everything now"
+   skips the preview. The same import is available as the
    automatic action "Nediimport" (Setup > Automatic actions); it is disabled by
    default.
 

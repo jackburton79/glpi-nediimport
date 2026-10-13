@@ -1,15 +1,30 @@
 # Italian translation of the NeDi Import plugin
 msgid ""
 msgstr ""
-"Project-Id-Version: nediimport 1.0.0\n"
+"Project-Id-Version: nediimport 1.1.0\n"
 "Language: it_IT\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
+msgid "%1$s has no name in NeDi: it will be called %2$s"
+msgstr "%1$s non ha un nome in NeDi: verrà chiamato %2$s"
+
+msgid "%d nodes already up to date"
+msgstr "%d nodi già aggiornati"
+
+msgid "%d switches already up to date"
+msgstr "%d switch già aggiornati"
+
+msgid "%s does not exist in GLPI: import the switch itself first"
+msgstr "%s non esiste in GLPI: importa prima lo switch stesso"
+
 msgid "(unchanged)"
 msgstr "(invariata)"
+
+msgid "Apply the selection for %s"
+msgstr "Applica la selezione per %s"
 
 msgid "Cables created or changed"
 msgstr "Cavi creati o modificati"
@@ -20,6 +35,9 @@ msgstr "Impossibile connettersi a NeDi: %s"
 msgid "Cannot read from NeDi: %s"
 msgstr "Impossibile leggere da NeDi: %s"
 
+msgid "Changes"
+msgstr "Modifiche"
+
 msgid "Choose the switches to import"
 msgstr "Scegli gli switch da importare"
 
@@ -28,6 +46,18 @@ msgstr "Computer creati"
 
 msgid "Connection to NeDi OK: %d devices found"
 msgstr "Connessione a NeDi riuscita: trovati %d dispositivi"
+
+msgid "Create VLAN %d"
+msgstr "Crea la VLAN %d"
+
+msgid "Create computer %s"
+msgstr "Crea il computer %s"
+
+msgid "Create network equipment %s"
+msgstr "Crea l'apparato di rete %s"
+
+msgid "Create port %s"
+msgstr "Crea la porta %s"
 
 msgid "Database name"
 msgstr "Nome del database"
@@ -38,6 +68,15 @@ msgstr "Entità per gli elementi creati"
 msgid "Errors"
 msgstr "Errori"
 
+msgid "Expected totals"
+msgstr "Totali previsti"
+
+msgid "GLPI is already up to date with NeDi."
+msgstr "GLPI è già allineato con NeDi."
+
+msgid "IP of %1$s: %2$s → %3$s"
+msgstr "IP di %1$s: %2$s → %3$s"
+
 msgid "Ignore nodes not seen for (days)"
 msgstr "Ignora i nodi non visti da (giorni)"
 
@@ -47,8 +86,17 @@ msgstr "Importa i dati da NeDi"
 msgid "Import every device found in NeDi"
 msgstr "Importa tutti i dispositivi trovati in NeDi"
 
+msgid "Import everything now"
+msgstr "Importa tutto subito"
+
+msgid "Imported: %s"
+msgstr "Importato: %s"
+
 msgid "Last import: %s"
 msgstr "Ultima importazione: %s"
+
+msgid "MAC %1$s belongs to computer \"%2$s\" in GLPI, NeDi calls it \"%3$s\""
+msgstr "Il MAC %1$s appartiene al computer \"%2$s\" in GLPI, NeDi lo chiama \"%3$s\""
 
 msgid "Messages"
 msgstr "Messaggi"
@@ -62,8 +110,17 @@ msgstr "Host del database NeDi"
 msgid "NeDi import"
 msgstr "Importazione da NeDi"
 
+msgid "Node"
+msgstr "Nodo"
+
 msgid "Nodes processed"
 msgstr "Nodi elaborati"
+
+msgid "Nothing has been written to GLPI. Below is what the import would do, switch by switch: tick what you want and apply it one switch at a time. Run the preview again afterwards: when everything is applied it reports no changes."
+msgstr "Non è stato scritto nulla in GLPI. Qui sotto trovi cosa farebbe l'importazione, switch per switch: spunta quello che vuoi e applicalo uno switch alla volta. Rilancia poi l'anteprima: quando tutto è applicato non segnala più modifiche."
+
+msgid "Nothing to do"
+msgstr "Niente da fare"
 
 msgid "Password"
 msgstr "Password"
@@ -74,17 +131,26 @@ msgstr "Porta"
 msgid "Ports created"
 msgstr "Porte create"
 
+msgid "Ports to create"
+msgstr "Porte da creare"
+
+msgid "Preview"
+msgstr "Anteprima"
+
 msgid "Read switches, ports, VLANs and attached nodes from NeDi and update GLPI. Nothing is deleted. This can take a while."
 msgstr "Legge da NeDi switch, porte, VLAN e nodi collegati e aggiorna GLPI. Non viene cancellato nulla. Può richiedere del tempo."
 
 msgid "Save and test connection"
 msgstr "Salva e verifica la connessione"
 
+msgid "Set MAC %1$s on %2$s"
+msgstr "Imposta il MAC %1$s su %2$s"
+
+msgid "Set the location of %s from its switch"
+msgstr "Imposta l'ubicazione di %s da quella del suo switch"
+
 msgid "Settings saved"
 msgstr "Impostazioni salvate"
-
-msgid "Start import"
-msgstr "Avvia l'importazione"
 
 msgid "Switches created"
 msgstr "Switch creati"
@@ -98,11 +164,29 @@ msgstr "Sincronizza switch, VLAN e nodi da NeDi"
 msgid "The plugin reads directly from the NeDi database. A read-only MySQL/MariaDB account is enough."
 msgstr "Il plugin legge direttamente dal database di NeDi. È sufficiente un utente MySQL/MariaDB in sola lettura."
 
+msgid "The switch itself: equipment, ports, VLANs, cables to other switches"
+msgstr "Lo switch stesso: apparato, porte, VLAN, cavi verso altri switch"
+
+msgid "Use the preview first: it shows what would change without writing anything, and lets you apply one switch at a time."
+msgstr "Usa prima l'anteprima: mostra cosa cambierebbe senza scrivere nulla e permette di applicare uno switch alla volta."
+
 msgid "User"
 msgstr "Utente"
+
+msgid "VLAN changes"
+msgstr "Modifiche alle VLAN"
+
+msgid "VLAN on %1$s: %2$s → %3$d"
+msgstr "VLAN su %1$s: %2$s → %3$d"
 
 msgid "VLANs created"
 msgstr "VLAN create"
 
 msgid "Virtual switches created"
 msgstr "Switch virtuali creati"
+
+msgid "Will be connected to"
+msgstr "Verrà collegato a"
+
+msgid "replaces %s"
+msgstr "sostituisce %s"
