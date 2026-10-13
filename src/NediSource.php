@@ -49,8 +49,8 @@ class NediSource
     public function devices(): array
     {
         $out = [];
-        foreach ($this->query('SELECT * FROM devices ORDER BY name') as $row) {
-            $name = trim((string) ($row['name'] ?? $row['device'] ?? ''));
+        foreach ($this->query('SELECT * FROM devices') as $row) {
+            $name = trim((string) ($row['device'] ?? $row['name'] ?? ''));
             if ($name === '') {
                 continue;
             }
@@ -60,6 +60,7 @@ class NediSource
                 'location' => trim((string) ($row['location'] ?? '')),
             ];
         }
+        usort($out, static fn($a, $b) => strcasecmp($a['name'], $b['name']));
         return $out;
     }
 
@@ -107,16 +108,36 @@ class NediSource
     }
 
     /**
+     * Nodes seen on a device. NeDi 2.x keeps host name and IP addresses in other
+     * tables: nodarp (IPv4, DNS name) and nodnd (IPv6, AAAA name), joined by MAC.
+     * Older versions had them directly in nodes; both layouts are handled.
+     *
      * @return list<array{name: string, ip: string, mac: string, ifname: string, vlanid: int, firstseen: int, lastseen: int}>
      */
     public function nodes(string $device): array
     {
+        $rows = $this->query('SELECT * FROM nodes WHERE device = ?', [$device]);
+        $arp  = $this->latestByMac('nodarp', 'ipupdate', $device);
+        $nd   = $this->latestByMac('nodnd', 'ip6update', $device);
+
         $out = [];
-        foreach ($this->query('SELECT * FROM nodes WHERE device = ?', [$device]) as $row) {
+        foreach ($rows as $row) {
             $mac = self::normalizeMac($row['mac'] ?? $row['nodmac'] ?? '');
+            $a   = $arp[$mac] ?? [];
+            $n   = $nd[$mac] ?? [];
+
+            $ip = self::ipToString($row['nodip'] ?? $row['ip'] ?? $a['nodip'] ?? null);
+            if ($ip === '') {
+                $ip = self::ipToString($n['nodip6'] ?? null);
+            }
+            $name = trim((string) ($row['name'] ?? $a['aname'] ?? $n['aaaaname'] ?? ''));
+            if ($name === '') {
+                $name = trim((string) ($n['aaaaname'] ?? ''));
+            }
+
             $out[] = [
-                'name'      => trim((string) ($row['name'] ?? '')),
-                'ip'        => self::ipToString($row['nodip'] ?? $row['ip'] ?? null),
+                'name'      => $name,
+                'ip'        => $ip,
                 'mac'       => $mac,
                 'ifname'    => trim((string) ($row['ifname'] ?? '')),
                 'vlanid'    => (int) ($row['vlanid'] ?? 0),
@@ -125,6 +146,35 @@ class NediSource
             ];
         }
         return $out;
+    }
+
+    /**
+     * Most recent row per MAC for the nodes of a device, from a table keyed by
+     * MAC address (empty if the table does not exist).
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    private function latestByMac(string $table, string $timeColumn, string $device): array
+    {
+        try {
+            $rows = $this->query(
+                "SELECT t.* FROM `$table` t WHERE t.mac IN (SELECT mac FROM nodes WHERE device = ?)",
+                [$device]
+            );
+        } catch (\PDOException $e) {
+            return [];
+        }
+        $latest = [];
+        foreach ($rows as $row) {
+            $mac = self::normalizeMac($row['mac'] ?? '');
+            if ($mac === '') {
+                continue;
+            }
+            if (!isset($latest[$mac]) || (int) ($row[$timeColumn] ?? 0) >= (int) ($latest[$mac][$timeColumn] ?? 0)) {
+                $latest[$mac] = $row;
+            }
+        }
+        return $latest;
     }
 
     /**

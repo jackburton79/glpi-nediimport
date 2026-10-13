@@ -16,6 +16,7 @@ the NeDi database directly instead of scraping NeDi's HTML pages.
 Requirements
 ------------
 * GLPI 11.x, PHP with the pdo_mysql extension
+* NeDi 2.x (tested against the 2.4 database schema; the NeDi 1.x layout is also handled)
 * Network access from the GLPI server to the NeDi MySQL/MariaDB database, with a
   read-only account (e.g. GRANT SELECT ON nedi.* TO 'glpi'@'glpi-host')
 
