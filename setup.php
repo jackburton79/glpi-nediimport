@@ -10,7 +10,7 @@
 use GlpiPlugin\Nediimport\Config;
 use GlpiPlugin\Nediimport\Menu;
 
-define('PLUGIN_NEDIIMPORT_VERSION', '1.0.0');
+define('PLUGIN_NEDIIMPORT_VERSION', '1.1.0');
 define('PLUGIN_NEDIIMPORT_MIN_GLPI', '11.0.0');
 define('PLUGIN_NEDIIMPORT_MAX_GLPI', '11.99.99');
 

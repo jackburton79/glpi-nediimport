@@ -17,6 +17,17 @@ use Vlan;
  *
  * The import is incremental: existing GLPI objects are matched and updated, never
  * deleted. A node that moved to another port is simply re-wired.
+ *
+ * Options:
+ *  - dry_run      (bool)         write nothing, only record what would be done (ImportResult::$actions)
+ *  - switches     (list|null)    only process these NeDi devices
+ *  - switch_level (bool)         create/update the switch, its ports, VLANs and cables (default true);
+ *                                when false only the nodes are processed
+ *  - nodes        (list|null)    only import the nodes with these MAC addresses
+ *
+ * In dry-run mode every write goes through the same code path as the real import:
+ * objects which do not exist yet get a negative placeholder id, and planned cables
+ * are kept in an in-memory overlay, so later steps see the effect of earlier ones.
  */
 class Importer
 {
@@ -32,19 +43,59 @@ class Importer
     /** @var list<int> entity and all its children, used to look objects up */
     private array $entities;
 
+    private bool $dryRun;
+
+    /** @var list<string>|null */
+    private ?array $onlySwitches;
+
+    /** @var list<string>|null */
+    private ?array $onlyMacs;
+
+    private bool $switchLevel;
+
     /** @var array<int, int> VLAN tag => vlans_id */
     private array $vlans = [];
 
     /** @var array<string, int> switch name => networkequipments_id */
     private array $switchIds = [];
 
-    public function __construct(?NediSource $source = null)
+    // ---- dry-run state
+    private int $fakeCounter = 0;
+
+    /** @var array<string, int> object key => placeholder id */
+    private array $fakeIndex = [];
+
+    /** @var array<int, string> placeholder id => display label */
+    private array $labels = [];
+
+    /** @var array<string, string> "itemtype:id" or "port:id" => display label of a real object */
+    private array $realLabels = [];
+
+    /** @var array<string, list<array{0: int, 1: string}>> "itemtype:id" => placeholder ports [id, name] */
+    private array $fakePorts = [];
+
+    /** @var array<int, int> port id => opposite port id (0 = unplugged), overrides the database */
+    private array $wireOverlay = [];
+
+    /** @var array{switch: ?string, mac: ?string} */
+    private array $scope = ['switch' => null, 'mac' => null];
+
+    /**
+     * @param array{dry_run?: bool, switches?: ?list<string>, switch_level?: bool, nodes?: ?list<string>} $options
+     */
+    public function __construct(?NediSource $source = null, array $options = [])
     {
-        $this->cfg      = Config::get();
-        $this->source   = $source;
-        $this->entity   = (int) $this->cfg['entities_id'];
-        $this->entities = array_map('intval', array_values(getSonsOf('glpi_entities', $this->entity)));
-        $this->result   = new ImportResult();
+        $this->cfg          = Config::get();
+        $this->source       = $source;
+        $this->entity       = (int) $this->cfg['entities_id'];
+        $this->entities     = array_map('intval', array_values(getSonsOf('glpi_entities', $this->entity)));
+        $this->result       = new ImportResult();
+        $this->dryRun       = (bool) ($options['dry_run'] ?? false);
+        $this->onlySwitches = $options['switches'] ?? null;
+        $this->switchLevel  = (bool) ($options['switch_level'] ?? true);
+        $this->onlyMacs     = isset($options['nodes'])
+            ? array_values(array_filter(array_map([NediSource::class, 'normalizeMac'], $options['nodes'])))
+            : null;
     }
 
     public function run(): ImportResult
@@ -59,22 +110,31 @@ class Importer
             return $this->finish();
         }
 
-        SwitchSelection::register($devices);
+        if (!$this->dryRun) {
+            SwitchSelection::register($devices);
+        }
         $selection = SwitchSelection::all();
         $switches  = $this->cfg['auto_all'] === '1'
             ? $devices
             : array_values(array_filter($devices, static fn($d) => $selection[$d] ?? false));
+        if ($this->onlySwitches !== null) {
+            $switches = array_values(array_intersect($devices, $this->onlySwitches));
+        }
 
         // First pass: equipment, ports and VLANs, so that every link target exists
         foreach ($switches as $switch) {
+            $this->scope = ['switch' => $switch, 'mac' => null];
             $this->guard("switch $switch", fn() => $this->importSwitch($switch));
         }
         // Second pass: uplinks and attached nodes
         foreach ($switches as $switch) {
+            $this->scope = ['switch' => $switch, 'mac' => null];
             if (!isset($this->switchIds[$switch])) {
                 continue;
             }
-            $this->guard("links of $switch", fn() => $this->importLinks($switch));
+            if ($this->switchLevel) {
+                $this->guard("links of $switch", fn() => $this->importLinks($switch));
+            }
             $this->guard("nodes of $switch", fn() => $this->importNodes($switch));
         }
 
@@ -83,10 +143,12 @@ class Importer
 
     private function finish(): ImportResult
     {
-        Config::save([
-            'last_run'   => date('Y-m-d H:i:s'),
-            'last_stats' => json_encode(['stats' => $this->result->stats, 'warnings' => array_slice($this->result->warnings, 0, 100)]),
-        ]);
+        if (!$this->dryRun) {
+            Config::save([
+                'last_run'   => date('Y-m-d H:i:s'),
+                'last_stats' => json_encode(['stats' => $this->result->stats, 'warnings' => array_slice($this->result->warnings, 0, 100)]),
+            ]);
+        }
         return $this->result;
     }
 
@@ -99,10 +161,92 @@ class Importer
         }
     }
 
+    // ------------------------------------------------------------ dry-run support
+
+    private function record(string $type, string $text): void
+    {
+        $this->result->actions[] = [
+            'switch' => (string) $this->scope['switch'],
+            'mac'    => $this->scope['mac'],
+            'type'   => $type,
+            'text'   => $text,
+        ];
+    }
+
+    /** Placeholder id for an object which would be created; the same key always gives the same id. */
+    private function fakeNew(string $key, string $label, string $type, string $text, string $stat): int
+    {
+        if (isset($this->fakeIndex[$key])) {
+            return $this->fakeIndex[$key];
+        }
+        $id = --$this->fakeCounter;
+        $this->fakeIndex[$key] = $id;
+        $this->labels[$id]     = $label;
+        $this->record($type, $text);
+        $this->result->inc($stat);
+        return $id;
+    }
+
+    private function itemLabel(string $itemtype, int $id): string
+    {
+        if ($id < 0) {
+            return $this->labels[$id] ?? "#$id";
+        }
+        $key = "$itemtype:$id";
+        if (!isset($this->realLabels[$key])) {
+            $table = $itemtype === 'Computer' ? 'glpi_computers' : 'glpi_networkequipments';
+            $row   = $this->findOne($table, ['id' => $id]);
+            $this->realLabels[$key] = (string) ($row['name'] ?? "#$id");
+        }
+        return $this->realLabels[$key];
+    }
+
+    private function portLabel(int $portId): string
+    {
+        if ($portId < 0) {
+            return $this->labels[$portId] ?? "#$portId";
+        }
+        if (!isset($this->realLabels["port:$portId"])) {
+            $row = $this->findOne('glpi_networkports', ['id' => $portId]);
+            $this->realLabels["port:$portId"] = $row
+                ? $this->itemLabel($row['itemtype'], (int) $row['items_id']) . ':' . $row['name']
+                : "#$portId";
+        }
+        return $this->realLabels["port:$portId"];
+    }
+
+    /**
+     * Ports of an item, existing and (in dry-run) planned, as [id, name].
+     *
+     * @return list<array{0: int, 1: string}>
+     */
+    private function portsOf(string $itemtype, int $itemId): array
+    {
+        global $DB;
+
+        $out = [];
+        if ($itemId > 0) {
+            foreach ($DB->request(['FROM' => 'glpi_networkports', 'WHERE' => ['itemtype' => $itemtype, 'items_id' => $itemId, 'is_deleted' => 0], 'ORDER' => 'id']) as $row) {
+                $out[] = [(int) $row['id'], $row['name']];
+            }
+        }
+        return array_merge($out, $this->fakePorts["$itemtype:$itemId"] ?? []);
+    }
+
     // ------------------------------------------------------------------ switches
 
     private function importSwitch(string $name): void
     {
+        if (!$this->switchLevel) {
+            $id = $this->knownSwitchId($name);
+            if ($id) {
+                $this->switchIds[$name] = $id;
+            } else {
+                $this->result->warn(sprintf(__('%s does not exist in GLPI: import the switch itself first', 'nediimport'), $name));
+            }
+            return;
+        }
+
         $id = $this->ensureEquipment($name);
         $this->switchIds[$name] = $id;
         $this->result->inc('switches');
@@ -115,6 +259,21 @@ class Importer
         }
     }
 
+    /** Id of an existing (or, in dry-run, planned) switch; 0 if there is none. Never creates anything. */
+    private function knownSwitchId(string $name): int
+    {
+        if (isset($this->switchIds[$name])) {
+            return $this->switchIds[$name];
+        }
+        $row = $this->findOne('glpi_networkequipments', [
+            'name'        => $name,
+            'is_deleted'  => 0,
+            'is_template' => 0,
+            'entities_id' => $this->entities,
+        ]);
+        return $row ? (int) $row['id'] : ($this->fakeIndex["eq:$name"] ?? 0);
+    }
+
     private function ensureEquipment(string $name, array $extra = []): int
     {
         $row = $this->findOne('glpi_networkequipments', [
@@ -125,6 +284,10 @@ class Importer
         ]);
         if ($row) {
             return (int) $row['id'];
+        }
+        if ($this->dryRun) {
+            return $this->fakeIndex["eq:$name"]
+                ?? $this->fakeNew("eq:$name", $name, 'new_switch', sprintf(__('Create network equipment %s', 'nediimport'), $name), 'switches_created');
         }
         $id = (new NetworkEquipment())->add($extra + [
             'name'        => $name,
@@ -140,18 +303,34 @@ class Importer
 
     private function ensurePort(string $itemtype, int $itemId, string $name, string $comment = '', string $mac = ''): int
     {
-        $row = $this->findOne('glpi_networkports', [
+        $row = $itemId > 0 ? $this->findOne('glpi_networkports', [
             'itemtype'   => $itemtype,
             'items_id'   => $itemId,
             'name'       => $name,
             'is_deleted' => 0,
-        ]);
+        ]) : null;
         if ($row) {
             if ($mac !== '' && $row['mac'] !== $mac) {
-                (new NetworkPort())->update(['id' => $row['id'], 'mac' => $mac, 'name' => $name]);
+                if ($this->dryRun) {
+                    $this->record('port_mac', sprintf(__('Set MAC %1$s on %2$s', 'nediimport'), $mac, $this->portLabel((int) $row['id'])));
+                } else {
+                    (new NetworkPort())->update(['id' => $row['id'], 'mac' => $mac, 'name' => $name]);
+                }
             }
             return (int) $row['id'];
         }
+
+        if ($this->dryRun) {
+            $key = "port:$itemtype:$itemId:$name";
+            if (isset($this->fakeIndex[$key])) {
+                return $this->fakeIndex[$key];
+            }
+            $label = $this->itemLabel($itemtype, $itemId) . ':' . $name;
+            $id    = $this->fakeNew($key, $label, 'new_port', sprintf(__('Create port %s', 'nediimport'), $label), 'ports_created');
+            $this->fakePorts["$itemtype:$itemId"][] = [$id, $name];
+            return $id;
+        }
+
         $input = [
             'itemtype'           => $itemtype,
             'items_id'           => $itemId,
@@ -181,6 +360,9 @@ class Importer
         if ($row) {
             return $this->vlans[$tag] = (int) $row['id'];
         }
+        if ($this->dryRun) {
+            return $this->vlans[$tag] = $this->fakeNew("vlan:$tag", "VLAN $tag", 'new_vlan', sprintf(__('Create VLAN %d', 'nediimport'), $tag), 'vlans_created');
+        }
         $id = (new Vlan())->add(['name' => "VLAN $tag", 'tag' => $tag, 'entities_id' => $this->entity]);
         if (!$id) {
             throw new \RuntimeException("cannot create VLAN $tag");
@@ -194,7 +376,31 @@ class Importer
     {
         global $DB;
 
-        $vlanId  = $this->ensureVlan($tag);
+        $vlanId = $this->ensureVlan($tag);
+
+        if ($this->dryRun) {
+            $current = [];
+            if ($portId > 0) {
+                foreach ($DB->request([
+                    'SELECT'     => 'glpi_vlans.tag',
+                    'FROM'       => 'glpi_networkports_vlans',
+                    'INNER JOIN' => ['glpi_vlans' => ['ON' => ['glpi_networkports_vlans' => 'vlans_id', 'glpi_vlans' => 'id']]],
+                    'WHERE'      => ['glpi_networkports_vlans.networkports_id' => $portId, 'glpi_networkports_vlans.tagged' => 0],
+                ]) as $row) {
+                    $current[] = (int) $row['tag'];
+                }
+            }
+            if ($current !== [$tag]) {
+                $this->record('vlan_change', sprintf(
+                    __('VLAN on %1$s: %2$s → %3$d', 'nediimport'),
+                    $this->portLabel($portId),
+                    $current ? implode(',', $current) : '-',
+                    $tag
+                ));
+            }
+            return;
+        }
+
         $present = false;
         foreach ($DB->request(['FROM' => 'glpi_networkports_vlans', 'WHERE' => ['networkports_id' => $portId, 'tagged' => 0]]) as $row) {
             if ((int) $row['vlans_id'] === $vlanId) {
@@ -212,6 +418,12 @@ class Importer
 
     private function oppositePort(int $portId): int
     {
+        if (array_key_exists($portId, $this->wireOverlay)) {
+            return $this->wireOverlay[$portId];
+        }
+        if ($portId <= 0) {
+            return 0;
+        }
         $row = $this->findOne('glpi_networkports_networkports', [
             'OR' => ['networkports_id_1' => $portId, 'networkports_id_2' => $portId],
         ]);
@@ -236,9 +448,36 @@ class Importer
     /** @return bool true if a new cable was created */
     private function wire(int $a, int $b): bool
     {
-        if ($this->oppositePort($a) === $b) {
+        $oldA = $this->oppositePort($a);
+        if ($oldA === $b) {
             return false;
         }
+
+        if ($this->dryRun) {
+            $oldB     = $this->oppositePort($b);
+            $replaced = [];
+            if ($oldA) {
+                $replaced[] = $this->portLabel($a) . ' ↔ ' . $this->portLabel($oldA);
+            }
+            if ($oldB) {
+                $replaced[] = $this->portLabel($b) . ' ↔ ' . $this->portLabel($oldB);
+            }
+            $text = $this->portLabel($a) . ' ↔ ' . $this->portLabel($b);
+            if ($replaced) {
+                $text .= ' (' . sprintf(__('replaces %s', 'nediimport'), implode(', ', $replaced)) . ')';
+            }
+            $this->record('wire', $text);
+            foreach ([$oldA, $oldB] as $old) {
+                if ($old) {
+                    $this->wireOverlay[$old] = 0;
+                }
+            }
+            $this->wireOverlay[$a] = $b;
+            $this->wireOverlay[$b] = $a;
+            $this->result->inc('links');
+            return true;
+        }
+
         $this->unplug($a);
         $this->unplug($b);
         (new NetworkPort_NetworkPort())->add(['networkports_id_1' => $a, 'networkports_id_2' => $b]);
@@ -249,12 +488,12 @@ class Importer
     private function importLinks(string $switch): void
     {
         foreach ($this->source->links($switch) as $link) {
-            $peer = $link['neighbor'];
-            if ($link['ifname'] === '' || $link['nbrifname'] === '' || !isset($this->switchIds[$peer])) {
+            $peerId = $this->knownSwitchId($link['neighbor']);
+            if ($link['ifname'] === '' || $link['nbrifname'] === '' || !$peerId) {
                 continue;
             }
             $local  = $this->ensurePort('NetworkEquipment', $this->switchIds[$switch], $link['ifname']);
-            $remote = $this->ensurePort('NetworkEquipment', $this->switchIds[$peer], $link['nbrifname']);
+            $remote = $this->ensurePort('NetworkEquipment', $peerId, $link['nbrifname']);
             $this->wire($local, $remote);
         }
     }
@@ -287,50 +526,79 @@ class Importer
         }
 
         foreach ($byPort as $ifname => $nodes) {
-            $this->guard("port $ifname of $switch", function () use ($switch, $switchId, $ifname, $nodes) {
+            // Whether a port needs a virtual switch depends on every node behind it,
+            // not only on the selected ones.
+            $shared   = count($nodes) > 1;
+            $selected = $this->onlyMacs === null
+                ? $nodes
+                : array_intersect_key($nodes, array_flip($this->onlyMacs));
+            if (!$selected) {
+                continue;
+            }
+
+            $this->guard("port $ifname of $switch", function () use ($switch, $switchId, $ifname, $selected, $shared) {
                 $realPort = $this->ensurePort('NetworkEquipment', $switchId, $ifname);
                 $location = $this->portLocation($realPort, $switchId);
 
-                if (count($nodes) === 1) {
-                    $node = reset($nodes);
-                    $this->result->inc('nodes');
-                    $computerPort = $this->importNode($node, $location);
-                    $this->wire($computerPort, $realPort);
+                if (!$shared) {
+                    $node = reset($selected);
+                    $this->importAndWire($switch, $node, $location, fn() => $realPort);
                     return;
                 }
 
                 // Several MAC addresses behind one port: an unmanaged switch or hub
+                $first       = reset($selected);
+                $this->scope['mac'] = $first['mac'];
                 $virtualName = "$switch-$ifname-VirtualSwitch";
                 $virtualId   = $this->ensureEquipment($virtualName, ['locations_id' => $location]);
                 $uplink      = $this->ensurePort('NetworkEquipment', $virtualId, 'uplink');
                 if ($this->wire($uplink, $realPort)) {
                     $this->result->inc('virtual_switches');
                 }
-                foreach ($nodes as $node) {
-                    $this->result->inc('nodes');
-                    $computerPort = $this->importNode($node, $location);
-                    $this->wire($computerPort, $this->freeVirtualPort($virtualId, $computerPort));
+                foreach ($selected as $node) {
+                    $this->importAndWire($switch, $node, $location, fn($computerPort) => $this->freeVirtualPort($virtualId, $computerPort));
                 }
             });
         }
+        $this->scope['mac'] = null;
+    }
+
+    /**
+     * Import one node and cable it to the port returned by $targetPort(computerPort).
+     */
+    private function importAndWire(string $switch, array $node, int $location, callable $targetPort): void
+    {
+        $this->scope['mac'] = $node['mac'];
+        $this->result->inc('nodes');
+
+        $computerPort = $this->importNode($node, $location);
+        $this->wire($computerPort, $targetPort($computerPort));
+
+        if ($this->dryRun) {
+            $this->result->nodes[] = [
+                'switch' => $switch,
+                'mac'    => $node['mac'],
+                'name'   => $this->hostname($node),
+                'ip'     => $node['ip'],
+                'target' => $this->portLabel($this->oppositePort($computerPort)),
+            ];
+        }
+        $this->scope['mac'] = null;
     }
 
     /** The virtual port already wired to $computerPort, or the first free one (created if needed). */
     private function freeVirtualPort(int $virtualId, int $computerPort): int
     {
-        global $DB;
-
         $current = $this->oppositePort($computerPort);
         $ports   = [];
-        foreach ($DB->request([
-            'FROM'  => 'glpi_networkports',
-            'WHERE' => ['itemtype' => 'NetworkEquipment', 'items_id' => $virtualId, 'is_deleted' => 0, 'name' => ['LIKE', 'port %']],
-            'ORDER' => 'id',
-        ]) as $port) {
-            if ((int) $port['id'] === $current) {
+        foreach ($this->portsOf('NetworkEquipment', $virtualId) as [$id, $name]) {
+            if (!str_starts_with($name, 'port ')) {
+                continue;
+            }
+            if ($id === $current) {
                 return $current;
             }
-            $ports[] = (int) $port['id'];
+            $ports[] = $id;
         }
         foreach ($ports as $id) {
             if (!$this->oppositePort($id)) {
@@ -349,7 +617,8 @@ class Importer
     {
         global $DB;
 
-        $mac = $node['mac'];
+        $mac      = $node['mac'];
+        $hostname = $this->hostname($node);
         $computer = null;
         $portId   = 0;
 
@@ -359,12 +628,14 @@ class Importer
             if ($row) {
                 $computer = $row;
                 $portId   = (int) $port['id'];
+                if ($this->dryRun && $row['name'] !== $hostname && $node['name'] !== '') {
+                    $this->record('warn', sprintf(__('MAC %1$s belongs to computer "%2$s" in GLPI, NeDi calls it "%3$s"', 'nediimport'), $mac, $row['name'], $hostname));
+                }
                 break;
             }
         }
 
         // 2. Same host name
-        $hostname = $this->hostname($node);
         if (!$computer) {
             $computer = $this->findOne('glpi_computers', [
                 'name'        => $hostname,
@@ -376,24 +647,39 @@ class Importer
 
         // 3. New computer
         if (!$computer) {
-            $id = (new Computer())->add(['name' => $hostname, 'entities_id' => $this->entity]);
-            if (!$id) {
-                throw new \RuntimeException("cannot create computer $hostname");
+            if ($this->dryRun) {
+                $id = $this->fakeIndex["comp:$hostname"] ?? $this->fakeNew(
+                    "comp:$hostname",
+                    $hostname,
+                    'new_computer',
+                    sprintf(__('Create computer %s', 'nediimport'), $hostname),
+                    'computers_created'
+                );
+                if ($node['name'] === '' || $node['name'] === '-') {
+                    $this->record('warn', sprintf(__('%1$s has no name in NeDi: it will be called %2$s', 'nediimport'), $mac, $hostname));
+                }
+                $computer = ['id' => $id, 'name' => $hostname, 'comment' => null, 'locations_id' => 0];
+            } else {
+                $id = (new Computer())->add(['name' => $hostname, 'entities_id' => $this->entity]);
+                if (!$id) {
+                    throw new \RuntimeException("cannot create computer $hostname");
+                }
+                $this->result->inc('computers_created');
+                $computer = $this->findOne('glpi_computers', ['id' => $id]);
             }
-            $this->result->inc('computers_created');
-            $computer = $this->findOne('glpi_computers', ['id' => $id]);
         }
 
         $computerId = (int) $computer['id'];
         if (!$portId) {
-            $existing = iterator_count($DB->request(['FROM' => 'glpi_networkports', 'WHERE' => ['itemtype' => 'Computer', 'items_id' => $computerId, 'is_deleted' => 0]]));
-            $portId = $this->ensurePort('Computer', $computerId, 'eth' . $existing, '', $mac);
+            $portId = $this->ensurePort('Computer', $computerId, 'eth' . count($this->portsOf('Computer', $computerId)), '', $mac);
         }
 
         if ($node['ip'] !== '') {
             $this->setIp($portId, $node['ip']);
         }
 
+        // The first/last seen comment changes on every run: it is written by the real
+        // import but deliberately not reported as a change in the preview.
         $update = [];
         $seen   = "NeDi import\nFirst seen: " . $this->date($node['firstseen']) . "\nLast seen: " . $this->date($node['lastseen']);
         if ($computer['comment'] === null || $computer['comment'] === '' || str_starts_with($computer['comment'], 'NeDi import')) {
@@ -403,8 +689,11 @@ class Importer
         }
         if ($location && !$computer['locations_id']) {
             $update['locations_id'] = $location;
+            if ($this->dryRun) {
+                $this->record('location', sprintf(__('Set the location of %s from its switch', 'nediimport'), $computer['name']));
+            }
         }
-        if ($update) {
+        if ($update && !$this->dryRun) {
             (new Computer())->update(['id' => $computerId] + $update);
         }
 
@@ -415,22 +704,41 @@ class Importer
     {
         global $DB;
 
-        $name = $this->findOne('glpi_networknames', ['itemtype' => 'NetworkPort', 'items_id' => $portId, 'is_deleted' => 0]);
-        if ($name) {
-            $nameId = (int) $name['id'];
-        } else {
+        $name   = $portId > 0 ? $this->findOne('glpi_networknames', ['itemtype' => 'NetworkPort', 'items_id' => $portId, 'is_deleted' => 0]) : null;
+        $nameId = $name ? (int) $name['id'] : 0;
+
+        $current = [];
+        if ($nameId) {
+            foreach ($DB->request(['FROM' => 'glpi_ipaddresses', 'WHERE' => ['itemtype' => 'NetworkName', 'items_id' => $nameId, 'is_deleted' => 0]]) as $row) {
+                $current[(int) $row['id']] = $row['name'];
+            }
+        }
+
+        if ($this->dryRun) {
+            if ($current !== [] && array_values($current) === [$ip]) {
+                return;
+            }
+            $this->record('ip', sprintf(
+                __('IP of %1$s: %2$s → %3$s', 'nediimport'),
+                $this->portLabel($portId),
+                $current ? implode(',', $current) : '-',
+                $ip
+            ));
+            return;
+        }
+
+        if (!$nameId) {
             $nameId = (int) (new NetworkName())->add(['itemtype' => 'NetworkPort', 'items_id' => $portId, 'entities_id' => $this->entity]);
             if (!$nameId) {
                 throw new \RuntimeException("cannot create network name for port #$portId");
             }
         }
-
         $found = false;
-        foreach ($DB->request(['FROM' => 'glpi_ipaddresses', 'WHERE' => ['itemtype' => 'NetworkName', 'items_id' => $nameId, 'is_deleted' => 0]]) as $row) {
-            if ($row['name'] === $ip) {
+        foreach ($current as $id => $address) {
+            if ($address === $ip) {
                 $found = true;
             } else {
-                (new IPAddress())->delete(['id' => $row['id']], true);
+                (new IPAddress())->delete(['id' => $id], true);
             }
         }
         if (!$found) {
